@@ -1,0 +1,6 @@
+@CoilApplication_HostAddress = http://localhost:5116
+
+GET {{CoilApplication_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
