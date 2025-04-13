@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Coil.Api.Database;
 using Coil.Api.Features.Wheather;
+using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,7 @@ namespace Coil.Api.Extentions
             AddSwaggerGenDocSecurityRequirements(services);
             services.AddCarter();
             // Register your handlers
-            services.AddTransient<IRequestHandler<WheatherForCastQuery, List<WeatherForecastResponse>>, GetItinerariesHandler>();
+            services.AddTransient<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetItinerariesHandler>();
 
             return services;
         }
