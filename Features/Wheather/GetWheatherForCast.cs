@@ -13,7 +13,7 @@ namespace Coil.Api.Features.Wheather
         {
             public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
         }
-        internal sealed class GetItinerariesHandler : IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>
+        internal sealed class GetWheatherForCastHandler : IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>
         {
 
             public Task<Result<List<WeatherForecastResponse>>> Handle(WheatherForCastQuery request, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ namespace Coil.Api.Features.Wheather
                 if (forecast is null)
                 {
                     return Task.FromResult(Result.Failure<List<WeatherForecastResponse>>(new Error(
-                        "GetArticle.Null",
+                        "GetWheatherForCast.Null",
                         "The article with the specified ID was not found")));
                 }
                 Result<List<WeatherForecastResponse>> result = forecast;

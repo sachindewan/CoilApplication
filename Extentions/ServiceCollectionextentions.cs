@@ -24,7 +24,7 @@ namespace Coil.Api.Extentions
             AddSwaggerGenDocSecurityRequirements(services);
             services.AddCarter();
             // Register your handlers
-            services.AddTransient<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetItinerariesHandler>();
+            services.AddTransient<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetWheatherForCastHandler>();
 
             return services;
         }
