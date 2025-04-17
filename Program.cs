@@ -16,6 +16,7 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
+app.UseExceptionHandler();
 app.MapGroup("api/auth").WithTags("Identity.Apis").MapIdentityApi<IdentityUser>();
 app.MapCarter();
 app.Run();

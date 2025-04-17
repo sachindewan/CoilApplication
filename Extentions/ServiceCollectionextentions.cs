@@ -2,6 +2,7 @@
 using Coil.Api.Database;
 using Coil.Api.Features.Wheather;
 using Coil.Api.Shared;
+using Coil.Api.Shared.Exception.Handler;
 using Coil.Api.Shared.MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ namespace Coil.Api.Extentions
     {
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
         {
+            services.AddProblemDetails();
             services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
             services.AddAuthorizationBuilder()
                 .AddPolicy("coil.api", policy =>
@@ -25,7 +27,7 @@ namespace Coil.Api.Extentions
             services.AddCarter();
             // Register your handlers
             services.AddTransient<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetWheatherForCastHandler>();
-
+            services.AddExceptionHandler<GlobalExceptionMiddleware>();
             return services;
         }
         public static IServiceCollection RegisterPersistenceServices(this IServiceCollection services, IConfiguration configuration)
