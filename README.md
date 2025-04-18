@@ -2,9 +2,9 @@ download the posgres sql and pgadmin
 create the migration using following command 
 Note -: if you see initial migrations already in the migration folder then do not create skip #1 and run #2 command.
         now if you are creating you own database entities then only you need to run both #1 and #2 command
-  1.  add-migration InitialMigrationIdentity -context CoilIdentityDbContext
+  1.  add-migration your-migration-name -context CoilIdentityDbContext
   2.  update-database -context CoilIdentityDbContext
-  3.  add-migration InitialMigrationApplication -context CoilApplicationDbContext
+  3.  add-migration  your-migration-name -context CoilApplicationDbContext
   4.  update-database -context CoilApplicationDbContext
 
 above commands lets you create identity and application migrations and create the database.

@@ -55,10 +55,9 @@ namespace Coil.Api.Features.Wheather
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            })
+            }).WithTags("wheather")
             .WithName("GetWeatherForecast")
-            .Produces(StatusCodes.Status200OK,typeof(WeatherForecastResponse))
-            .WithOpenApi();
+            .Produces(StatusCodes.Status200OK, typeof(WeatherForecastResponse));
         }
     }
 }

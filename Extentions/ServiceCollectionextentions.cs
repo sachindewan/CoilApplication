@@ -6,7 +6,11 @@ using Coil.Api.Shared.Exception.Handler;
 using Coil.Api.Shared.MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 using static Coil.Api.Features.Wheather.GetWheatherForCast;
+using System.Reflection;
+using static Coil.Api.Features.Identity.SetRoleToUser;
+using static Coil.Api.Features.Identity.CreateRole;
 
 namespace Coil.Api.Extentions
 {
@@ -14,6 +18,7 @@ namespace Coil.Api.Extentions
     {
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
         {
+            var currentAssembly = Assembly.GetExecutingAssembly();
             services.AddProblemDetails();
             services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
             services.AddAuthorizationBuilder()
@@ -27,7 +32,11 @@ namespace Coil.Api.Extentions
             services.AddCarter();
             // Register your handlers
             services.AddTransient<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetWheatherForCastHandler>();
+            services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
+            services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
+
             services.AddExceptionHandler<GlobalExceptionMiddleware>();
+            services.AddValidatorsFromAssembly(currentAssembly);
             return services;
         }
         public static IServiceCollection RegisterPersistenceServices(this IServiceCollection services, IConfiguration configuration)
