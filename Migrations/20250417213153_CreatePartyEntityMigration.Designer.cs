@@ -2,6 +2,7 @@
 using Coil.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Coil.Api.Migrations
 {
     [DbContext(typeof(CoilApplicationDbContext))]
-    partial class CoilApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250417213153_CreatePartyEntityMigration")]
+    partial class CreatePartyEntityMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,8 +34,8 @@ namespace Coil.Api.Migrations
 
                     b.Property<string>("PartyName")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("PlantId")
                         .HasColumnType("integer");
@@ -52,50 +55,25 @@ namespace Coil.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlantId"));
 
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("PlantName")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("PlantId");
 
                     b.ToTable("Plants");
                 });
 
-            modelBuilder.Entity("Coil.Api.Entities.RawMaterial", b =>
-                {
-                    b.Property<int>("RawMaterialId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RawMaterialId"));
-
-                    b.Property<string>("RawMaterialName")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.HasKey("RawMaterialId");
-
-                    b.ToTable("RawMaterials");
-                });
-
             modelBuilder.Entity("Coil.Api.Entities.Party", b =>
                 {
-                    b.HasOne("Coil.Api.Entities.Plant", null)
-                        .WithMany("Parties")
+                    b.HasOne("Coil.Api.Entities.Plant", "Plant")
+                        .WithMany()
                         .HasForeignKey("PlantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
 
-            modelBuilder.Entity("Coil.Api.Entities.Plant", b =>
-                {
-                    b.Navigation("Parties");
+                    b.Navigation("Plant");
                 });
 #pragma warning restore 612, 618
         }

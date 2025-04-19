@@ -1,11 +1,17 @@
 ﻿using Carter;
 using Coil.Api.Database;
-using Coil.Api.Features.Wheather;
+using Coil.Api.Entities;
 using Coil.Api.Shared;
 using Coil.Api.Shared.Exception.Handler;
 using Coil.Api.Shared.MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using static Coil.Api.Features.Parties.GetAllPartiesDetails;
+using static Coil.Api.Features.Parties.SavePartyDetails;
+using static Coil.Api.Features.Plants.GetAllPlantDetails;
+using static Coil.Api.Features.Plants.SavePlantDetails;
+using static Coil.Api.Features.RawMaterials.GetAllRawMaterialsDetails;
+using static Coil.Api.Features.RawMaterials.SaveRawMaterialDetails;
 using FluentValidation;
 using static Coil.Api.Features.Wheather.GetWheatherForCast;
 using System.Reflection;
@@ -32,6 +38,13 @@ namespace Coil.Api.Extentions
             services.AddCarter();
             // Register your handlers
             services.AddTransient<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetWheatherForCastHandler>();
+            services.AddTransient<IRequestHandler<AllPlantDetailsQuery, Result<List<Entities.Plant>>>, GetAllPlantDetailsHandler>();
+            services.AddTransient<IRequestHandler<AllPartiesDetailsQuery, Result<List<Party>>>, GetAllPartiesDetailsHandler>();
+            services.AddTransient<IRequestHandler<AllRawMaterialsDetailsQuery, Result<List<RawMaterial>>>, GetAllRawMaterialsDetailsHandler>();
+            services.AddTransient<IRequestHandler<SavePartyCommand, Result<Party>>, SavePartyCommandHandler>();
+            services.AddTransient<IRequestHandler<SavePlantCommand, Result<Plant>>, SavePlantCommandHandler>();
+            services.AddTransient<IRequestHandler<SaveRawMaterialCommand, Result<RawMaterial>>, SaveRawMaterialCommandHandler>();
+
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
 
