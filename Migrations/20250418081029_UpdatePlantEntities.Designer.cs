@@ -2,6 +2,7 @@
 using Coil.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Coil.Api.Migrations
 {
     [DbContext(typeof(CoilApplicationDbContext))]
-    partial class CoilApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250418081029_UpdatePlantEntities")]
+    partial class UpdatePlantEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,31 +69,15 @@ namespace Coil.Api.Migrations
                     b.ToTable("Plants");
                 });
 
-            modelBuilder.Entity("Coil.Api.Entities.RawMaterial", b =>
-                {
-                    b.Property<int>("RawMaterialId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RawMaterialId"));
-
-                    b.Property<string>("RawMaterialName")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.HasKey("RawMaterialId");
-
-                    b.ToTable("RawMaterials");
-                });
-
             modelBuilder.Entity("Coil.Api.Entities.Party", b =>
                 {
-                    b.HasOne("Coil.Api.Entities.Plant", null)
+                    b.HasOne("Coil.Api.Entities.Plant", "Plant")
                         .WithMany("Parties")
                         .HasForeignKey("PlantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Plant");
                 });
 
             modelBuilder.Entity("Coil.Api.Entities.Plant", b =>

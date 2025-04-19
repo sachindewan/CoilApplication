@@ -3,12 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Coil.Api.Database
 {
-    public class CoilApplicationDbContext : DbContext
+    public class CoilApplicationDbContext(DbContextOptions<CoilApplicationDbContext> dbContextOptions) : DbContext(dbContextOptions)
     {
-        public CoilApplicationDbContext(DbContextOptions<CoilApplicationDbContext> dbContextOptions) : base(dbContextOptions)
-        {
-
-        }
+        public DbSet<Plant> Plants { get; set; } = null!;
+        public DbSet<Party> Parties { get; set; } = null!;
+        public DbSet<RawMaterial> RawMaterials { get; set; } = null!;
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
