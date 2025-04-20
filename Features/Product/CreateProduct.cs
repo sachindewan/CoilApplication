@@ -63,7 +63,7 @@ namespace Coil.Api.Features.Product
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/products", async (
+            app.MapPost("/product", async (
                     [FromForm] ProductRequest productInput,
                     IRequestHandler<CreateProductQuery, Result<CreateProductResponse>> handler,
                     HttpContext context,
