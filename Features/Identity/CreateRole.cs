@@ -46,7 +46,7 @@ namespace Coil.Api.Features.Identity
 
                 return Result.Failure<CreateRoleResponse>(new Error(
                     "CreateRoleQuery.Invalid",
-                    "Failed to assign role to user."));
+                    $"Failed creating role. might be role {role} already exist. please contact administrator."));
             }
         }
     }
