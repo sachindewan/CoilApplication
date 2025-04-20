@@ -17,6 +17,9 @@ using static Coil.Api.Features.Wheather.GetWheatherForCast;
 using System.Reflection;
 using static Coil.Api.Features.Identity.SetRoleToUser;
 using static Coil.Api.Features.Identity.CreateRole;
+using Coil.Api.Features.Product;
+using static Coil.Api.Features.Product.CreateProduct;
+using Microsoft.OpenApi.Models;
 
 namespace Coil.Api.Extentions
 {
@@ -47,6 +50,7 @@ namespace Coil.Api.Extentions
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
+            services.AddScoped<IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>, CreateProductHandler>();
 
             services.AddExceptionHandler<GlobalExceptionMiddleware>();
             services.AddValidatorsFromAssembly(currentAssembly);

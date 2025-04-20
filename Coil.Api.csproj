@@ -23,6 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\ProductUploads\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Contracts\" />
     <Folder Include="Features\RawMaterials\" />
   </ItemGroup>
