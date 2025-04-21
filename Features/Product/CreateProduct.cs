@@ -6,6 +6,7 @@ using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using static Coil.Api.Features.Product.CreateProduct;
 
 namespace Coil.Api.Features.Product
@@ -30,10 +31,19 @@ namespace Coil.Api.Features.Product
             }
         }
 
-        internal class CreateProductHandler(CoilApplicationDbContext dbContext) : IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>
+        internal class CreateProductHandler(CoilApplicationDbContext dbContext, IValidator<CreateProductQuery> validator) : IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>
         {
             public async Task<Result<CreateProductResponse>> Handle(CreateProductQuery request, CancellationToken cancellationToken)
             {
+
+
+                var validationResult = validator.Validate(request);
+                if (!validationResult.IsValid)
+                {
+                    return Result.Failure<CreateProductResponse>(new Error(
+                        "CreateProductQuery.Invalid",
+                        string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))));
+                }
                 // Map the request to the Product entity
                 var product = new Entities.Product
                 {
@@ -129,10 +139,15 @@ namespace Coil.Api.Features.Product
                         {
                             Status = StatusCodes.Status400BadRequest,
                             Title = "Invalid Request",
-                            Detail = result.Error.Message,
                             Instance = "/products"
                         };
 
+                        var errors = new List<string>
+                                {
+                                     $"{result.Error.Message}"
+                                };
+                        problemDetails.Extensions.Add("Errors", errors);
+                        DeleteDirectory(productFolder);
                         return Results.Problem(problemDetails);
                     }
 
@@ -144,6 +159,11 @@ namespace Coil.Api.Features.Product
                 .Produces(StatusCodes.Status400BadRequest)
                 .WithOpenApi()
                 .DisableAntiforgery();
+        }
+
+        private static void DeleteDirectory(string path)
+        {
+            Directory.Delete(path, true);
         }
     }
 }
