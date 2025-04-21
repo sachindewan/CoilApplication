@@ -20,6 +20,7 @@ using static Coil.Api.Features.Identity.CreateRole;
 using Coil.Api.Features.Product;
 using static Coil.Api.Features.Product.CreateProduct;
 using Microsoft.OpenApi.Models;
+using static Coil.Api.Features.RawMaterialPurchases.SaveRawMaterialPurchaseDetails;
 
 namespace Coil.Api.Extentions
 {
@@ -47,6 +48,7 @@ namespace Coil.Api.Extentions
             services.AddTransient<IRequestHandler<SavePartyCommand, Result<Party>>, SavePartyCommandHandler>();
             services.AddTransient<IRequestHandler<SavePlantCommand, Result<Plant>>, SavePlantCommandHandler>();
             services.AddTransient<IRequestHandler<SaveRawMaterialCommand, Result<RawMaterial>>, SaveRawMaterialCommandHandler>();
+            services.AddTransient<IRequestHandler<SaveRawMaterialPurchaseCommand, Result<RawMaterialPurchase>>, SaveRawMaterialPurchaseCommandHandler>();
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();

@@ -8,9 +8,9 @@ namespace Coil.Api.Database
         public DbSet<Plant> Plants { get; set; } = null!;
         public DbSet<Party> Parties { get; set; } = null!;
         public DbSet<RawMaterial> RawMaterials { get; set; } = null!;
-
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<RawMaterialPurchase> RawMaterialPurchases { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
