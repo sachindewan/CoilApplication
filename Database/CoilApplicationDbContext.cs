@@ -16,8 +16,9 @@ namespace Coil.Api.Database
         {
             modelBuilder.Entity<Product>()
                 .HasMany(p => p.ProductImages)
-                .WithOne(pi => pi.Product)
-                .HasForeignKey(pi => pi.ProductId);
+                .WithOne() 
+                .HasForeignKey(pi => pi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict); 
 
             base.OnModelCreating(modelBuilder);
         }
