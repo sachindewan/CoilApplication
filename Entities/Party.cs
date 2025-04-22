@@ -8,6 +8,7 @@ namespace Coil.Api.Entities
         public int PartyId { get; set; }
 
         [MaxLength(1000, ErrorMessage = "Party Name exceeds 1000 characters")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Party name is required.")]
         public required string PartyName { get; set; }
 
         [ForeignKey(nameof(Plant))]
