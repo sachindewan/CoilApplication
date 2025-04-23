@@ -6,9 +6,9 @@ using Coil.Api.Shared.MediatR;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static Coil.Api.Features.RawMaterialPurchases.SaveRawMaterialPurchaseDetails;
+using static Coil.Api.Features.RawMaterialOperations.SaveRawMaterialPurchaseDetails;
 
-namespace Coil.Api.Features.RawMaterialPurchases
+namespace Coil.Api.Features.RawMaterialOperations
 {
     public static class SaveRawMaterialPurchaseDetails
     {
@@ -77,62 +77,96 @@ namespace Coil.Api.Features.RawMaterialPurchases
         {
             public async Task<Result<RawMaterialPurchase>> Handle(SaveRawMaterialPurchaseCommand request, CancellationToken cancellationToken)
             {
-                // Validate Plant existence
-                var plantExists = await _dbContext.Plants.AnyAsync(p => p.PlantId == request.PlantId, cancellationToken);
-                if (!plantExists)
+                // Start a database transaction
+                using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+                try
                 {
-                    return Result.Failure<RawMaterialPurchase>(new Error(
-                        "SaveRawMaterialPurchaseCommand.PlantNotFound",
-                        $"Plant with ID {request.PlantId} does not exist."));
+                    // Validate Plant existence
+                    var plantExists = await _dbContext.Plants.AnyAsync(p => p.PlantId == request.PlantId, cancellationToken);
+                    if (!plantExists)
+                    {
+                        return Result.Failure<RawMaterialPurchase>(new Error(
+                            "SaveRawMaterialPurchaseCommand.PlantNotFound",
+                            $"Plant with ID {request.PlantId} does not exist."));
+                    }
+
+                    // Validate RawMaterial existence
+                    var rawMaterialExists = await _dbContext.RawMaterials.AnyAsync(rm => rm.RawMaterialId == request.RawMaterialId, cancellationToken);
+                    if (!rawMaterialExists)
+                    {
+                        return Result.Failure<RawMaterialPurchase>(new Error(
+                            "SaveRawMaterialPurchaseCommand.RawMaterialNotFound",
+                            $"Raw Material with ID {request.RawMaterialId} does not exist."));
+                    }
+
+                    // Validate Party existence
+                    var partyExists = await _dbContext.Parties.AnyAsync(p => p.PartyId == request.PartyId, cancellationToken);
+                    if (!partyExists)
+                    {
+                        return Result.Failure<RawMaterialPurchase>(new Error(
+                            "SaveRawMaterialPurchaseCommand.PartyNotFound",
+                            $"Party with ID {request.PartyId} does not exist."));
+                    }
+
+                    // Check for duplicate BillNumber for the same Plant & the same Raw material
+                    var billExists = await _dbContext.RawMaterialPurchases.AnyAsync(rmp => rmp.BillNumber.Trim().ToLower() == request.BillNumber.Trim().ToLower() && rmp.PlantId == request.PlantId && rmp.RawMaterialId == request.RawMaterialId, cancellationToken);
+                    if (billExists)
+                    {
+                        return Result.Failure<RawMaterialPurchase>(new Error(
+                            "SaveRawMaterialPurchaseCommand.DuplicateBill",
+                            $"A purchase with the bill number '{request.BillNumber}' already exists for Plant ID {request.PlantId}."));
+                    }
+
+                    // Create a new RawMaterialPurchase entity
+                    var newPurchase = new RawMaterialPurchase
+                    {
+                        PlantId = request.PlantId,
+                        BillNumber = request.BillNumber.Trim(),
+                        Weight = request.Weight,
+                        Rate = request.Rate,
+                        BillValue = request.BillValue,
+                        GST = request.GST,
+                        TotalBillAmount = request.TotalBillAmount,
+                        PurchaseDate = request.PurchaseDate,
+                        RawMaterialId = request.RawMaterialId,
+                        PartyId = request.PartyId
+                    };
+
+                    // Add the new purchase
+                    _dbContext.RawMaterialPurchases.Add(newPurchase);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    // Update RawMaterialQuantity
+                    var rawMaterialQuantity = await _dbContext.RawMaterialQuantities
+                        .FirstOrDefaultAsync(rmq => rmq.RawMaterialId == request.RawMaterialId, cancellationToken);
+
+                    if (rawMaterialQuantity == null)
+                    {
+                        return Result.Failure<RawMaterialPurchase>(new Error(
+                            "SaveRawMaterialPurchaseCommand.RawMaterialQuantityNotFound",
+                            $"Raw Material Quantity for Raw Material ID {request.RawMaterialId} does not exist."));
+                    }
+
+                    rawMaterialQuantity.AvailableQuantity += request.Weight;
+
+                    // Save the updated RawMaterialQuantity
+                    _dbContext.RawMaterialQuantities.Update(rawMaterialQuantity);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    // Commit the transaction
+                    await transaction.CommitAsync(cancellationToken);
+
+                    return Result.Success(newPurchase);
                 }
-
-                // Validate RawMaterial existence
-                var rawMaterialExists = await _dbContext.RawMaterials.AnyAsync(rm => rm.RawMaterialId == request.RawMaterialId, cancellationToken);
-                if (!rawMaterialExists)
+                catch (Exception ex)
                 {
+                    // Rollback the transaction in case of an error
+                    await transaction.RollbackAsync(cancellationToken);
                     return Result.Failure<RawMaterialPurchase>(new Error(
-                        "SaveRawMaterialPurchaseCommand.RawMaterialNotFound",
-                        $"Raw Material with ID {request.RawMaterialId} does not exist."));
+                        "SaveRawMaterialPurchaseCommand.TransactionFailed",
+                        $"An error occurred while processing the request: {ex.Message}"));
                 }
-
-                // Validate Party existence
-                var partyExists = await _dbContext.Parties.AnyAsync(p => p.PartyId == request.PartyId, cancellationToken);
-                if (!partyExists)
-                {
-                    return Result.Failure<RawMaterialPurchase>(new Error(
-                        "SaveRawMaterialPurchaseCommand.PartyNotFound",
-                        $"Party with ID {request.PartyId} does not exist."));
-                }
-
-                // Check for duplicate BillNumber for the same Plant & the same Raw material
-                var billExists = await _dbContext.RawMaterialPurchases.AnyAsync(rmp => rmp.BillNumber.Trim().ToLower() == request.BillNumber.Trim().ToLower() && rmp.PlantId == request.PlantId && rmp.RawMaterialId == request.RawMaterialId, cancellationToken);
-                if (billExists)
-                {
-                    return Result.Failure<RawMaterialPurchase>(new Error(
-                        "SaveRawMaterialPurchaseCommand.DuplicateBill",
-                        $"A purchase with the bill number '{request.BillNumber}' already exists for Plant ID {request.PlantId}."));
-                }
-
-                // Create a new RawMaterialPurchase entity
-                var newPurchase = new RawMaterialPurchase
-                {
-                    PlantId = request.PlantId,
-                    BillNumber = request.BillNumber.Trim(),
-                    Weight = request.Weight,
-                    Rate = request.Rate,
-                    BillValue = request.BillValue,
-                    GST = request.GST,
-                    TotalBillAmount = request.TotalBillAmount,
-                    PurchaseDate = request.PurchaseDate,
-                    RawMaterialId = request.RawMaterialId,
-                    PartyId = request.PartyId
-                };
-
-                // Add and save the RawMaterialPurchase
-                _dbContext.RawMaterialPurchases.Add(newPurchase);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-
-                return Result.Success(newPurchase);
             }
         }
     }

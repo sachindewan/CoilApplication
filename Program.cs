@@ -7,7 +7,7 @@ builder.Services.RegisterApplicationServices();
 builder.Services.RegisterPersistenceServices(builder.Configuration);
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+    options.AddPolicy("CorsPolicy", policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 });
 var app = builder.Build();
 

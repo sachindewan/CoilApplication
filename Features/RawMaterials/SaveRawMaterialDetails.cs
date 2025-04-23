@@ -32,26 +32,53 @@ namespace Coil.Api.Features.RawMaterials
         {
             public async Task<Result<RawMaterial>> Handle(SaveRawMaterialCommand request, CancellationToken cancellationToken)
             {
-                // Check if a RawMaterial with the same name already exists
-                var rawMaterialExists = await _dbContext.RawMaterials.AnyAsync(rm => rm.RawMaterialName.Trim().ToLower() == request.RawMaterialName.Trim().ToLower(), cancellationToken);
-                if (rawMaterialExists)
+                // Start a database transaction
+                using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+                try
                 {
-                    return Result.Failure<RawMaterial>(new Error(
-                        "SaveRawMaterialCommand.DuplicateRawMaterial",
-                        $"A raw material with the name '{request.RawMaterialName}' already exists."));
+                    // Check if a RawMaterial with the same name already exists
+                    var rawMaterialExists = await _dbContext.RawMaterials.AnyAsync(rm => rm.RawMaterialName.Trim().ToLower() == request.RawMaterialName.Trim().ToLower(), cancellationToken);
+                    if (rawMaterialExists)
+                    {
+                        return Result.Failure<RawMaterial>(new Error(
+                            "SaveRawMaterialCommand.DuplicateRawMaterial",
+                            $"A raw material with the name '{request.RawMaterialName}' already exists."));
+                    }
+
+                    // Create a new RawMaterial entity
+                    var newRawMaterial = new RawMaterial
+                    {
+                        RawMaterialName = request.RawMaterialName.Trim()
+                    };
+
+                    // Add and save the RawMaterial
+                    _dbContext.RawMaterials.Add(newRawMaterial);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    // Add an entry in the RawMaterialQuantity table with AvailableQuantity = 0
+                    var rawMaterialQuantity = new RawMaterialQuantity
+                    {
+                        RawMaterialId = newRawMaterial.RawMaterialId,
+                        AvailableQuantity = 0
+                    };
+
+                    _dbContext.RawMaterialQuantities.Add(rawMaterialQuantity);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    // Commit the transaction
+                    await transaction.CommitAsync(cancellationToken);
+
+                    return Result.Success(newRawMaterial);
                 }
-
-                // Create a new RawMaterial entity
-                var newRawMaterial = new RawMaterial
+                catch (Exception ex)
                 {
-                    RawMaterialName = request.RawMaterialName.Trim()
-                };
-
-                // Add and save the RawMaterial
-                _dbContext.RawMaterials.Add(newRawMaterial);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-
-                return Result.Success(newRawMaterial);
+                    // Rollback the transaction in case of an error
+                    await transaction.RollbackAsync(cancellationToken);
+                    return Result.Failure<RawMaterial>(new Error(
+                        "SaveRawMaterialCommand.TransactionFailed",
+                        $"An error occurred while processing the request: {ex.Message}"));
+                }
             }
         }
     }
