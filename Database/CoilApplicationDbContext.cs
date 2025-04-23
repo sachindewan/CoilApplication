@@ -12,7 +12,7 @@ namespace Coil.Api.Database
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<RawMaterialPurchase> RawMaterialPurchases { get; set; } = null!;
         public DbSet<RawMaterialQuantity> RawMaterialQuantities { get; set; } = null!;
-
+        public DbSet<Expense> Expenses { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>()

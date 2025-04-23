@@ -4,24 +4,23 @@ using Coil.Api.Entities;
 using Coil.Api.Shared;
 using Coil.Api.Shared.Exception.Handler;
 using Coil.Api.Shared.MediatR;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
+using static Coil.Api.Features.Expenses.SaveExpenseDetails;
+using static Coil.Api.Features.Identity.CreateRole;
+using static Coil.Api.Features.Identity.SetRoleToUser;
 using static Coil.Api.Features.Parties.GetAllPartiesDetails;
 using static Coil.Api.Features.Parties.SavePartyDetails;
 using static Coil.Api.Features.Plants.GetAllPlantDetails;
 using static Coil.Api.Features.Plants.SavePlantDetails;
-using static Coil.Api.Features.RawMaterials.GetAllRawMaterialsDetails;
-using static Coil.Api.Features.RawMaterials.SaveRawMaterialDetails;
-using FluentValidation;
-using static Coil.Api.Features.Wheather.GetWheatherForCast;
-using System.Reflection;
-using static Coil.Api.Features.Identity.SetRoleToUser;
-using static Coil.Api.Features.Identity.CreateRole;
-using Coil.Api.Features.Product;
 using static Coil.Api.Features.Product.CreateProduct;
-using Microsoft.OpenApi.Models;
 using static Coil.Api.Features.RawMaterialOperations.SaveRawMaterialPurchaseDetails;
+using static Coil.Api.Features.RawMaterials.GetAllRawMaterialsDetails;
 using static Coil.Api.Features.RawMaterials.GetRawMaterialQuantity;
+using static Coil.Api.Features.RawMaterials.SaveRawMaterialDetails;
+using static Coil.Api.Features.Wheather.GetWheatherForCast;
 
 namespace Coil.Api.Extentions
 {
@@ -51,6 +50,7 @@ namespace Coil.Api.Extentions
             services.AddTransient<IRequestHandler<SaveRawMaterialCommand, Result<RawMaterial>>, SaveRawMaterialCommandHandler>();
             services.AddTransient<IRequestHandler<SaveRawMaterialPurchaseCommand, Result<RawMaterialPurchase>>, SaveRawMaterialPurchaseCommandHandler>();
             services.AddTransient<IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>>, GetRawMaterialQuantityHandler>();
+            services.AddTransient<IRequestHandler<SaveExpenseCommand, Result<Expense>>, SaveExpenseCommandHandler>();
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
