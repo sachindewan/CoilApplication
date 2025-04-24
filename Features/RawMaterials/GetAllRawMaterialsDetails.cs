@@ -3,6 +3,7 @@ using Coil.Api.Database;
 using Coil.Api.Entities;
 using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Coil.Api.Features.RawMaterials.GetAllRawMaterialsDetails;
 
@@ -37,6 +38,20 @@ namespace Coil.Api.Features.RawMaterials
             app.MapGet("/rawmaterials", async (IRequestHandler<AllRawMaterialsDetailsQuery, Result<List<RawMaterial>>> requestHandler, CancellationToken cancellationToken) =>
             {
                 var result = await requestHandler.Handle(new AllRawMaterialsDetailsQuery(), cancellationToken);
+
+                if (result.IsFailure)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "Invalid Request",
+                        Detail = result.Error.Message,
+                        Instance = "/rawmaterials"
+                    };
+
+                    return Results.Problem(problemDetails);
+                }
+
                 return Results.Ok(result.Value);
             })
             .WithName("GetRawMaterialsDetails")

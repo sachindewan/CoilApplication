@@ -3,6 +3,7 @@ using Coil.Api.Database;
 using Coil.Api.Entities;
 using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Coil.Api.Features.Parties.GetAllPartiesDetails;
 
@@ -38,12 +39,18 @@ namespace Coil.Api.Features.Parties
             app.MapGet("/parties", async (IRequestHandler<AllPartiesDetailsQuery, Result<List<Party>>> requestHandler, CancellationToken cancellationToken) =>
             {
                 var result = await requestHandler.Handle(new AllPartiesDetailsQuery(), cancellationToken);
-
                 if (result.IsFailure)
                 {
-                    return Results.NotFound(result.Error.Message);
-                }
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "Invalid Request",
+                        Detail = result.Error.Message,
+                        Instance = "/parties"
+                    };
 
+                    return Results.Problem(problemDetails);
+                }
                 return Results.Ok(result.Value);
             })
             .WithName("GetPartiesDetails")

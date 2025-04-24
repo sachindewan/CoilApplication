@@ -3,6 +3,7 @@ using Coil.Api.Database;
 using Coil.Api.Entities;
 using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Coil.Api.Features.Plants.GetAllPlantDetails;
 
@@ -37,7 +38,18 @@ namespace Coil.Api.Features.Plants
             app.MapGet("/plants", async (IRequestHandler<AllPlantDetailsQuery, Result<List<Plant>>> requestHandler, CancellationToken cancellationToken) =>
             {
                 var result = await requestHandler.Handle(new AllPlantDetailsQuery(), cancellationToken);
+                if (result.IsFailure)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "Invalid Request",
+                        Detail = result.Error.Message,
+                        Instance = "/plants"
+                    };
 
+                    return Results.Problem(problemDetails);
+                }
                 return Results.Ok(result.Value);
             })
             .WithName("GetPlantDetails")
