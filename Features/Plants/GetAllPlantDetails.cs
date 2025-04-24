@@ -38,11 +38,6 @@ namespace Coil.Api.Features.Plants
             {
                 var result = await requestHandler.Handle(new AllPlantDetailsQuery(), cancellationToken);
 
-                if (result.IsFailure)
-                {
-                    return Results.NotFound(result.Error.Message);
-                }
-
                 return Results.Ok(result.Value);
             })
             .WithName("GetPlantDetails")

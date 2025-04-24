@@ -27,7 +27,7 @@ namespace Coil.Api.Features.RawMaterials
                         $"Raw material quantity for RawMaterialId {request.RawMaterialId} was not found."));
                 }
 
-                return Result.Success(rawMaterialQuantity);
+                return Result.Success<RawMaterialQuantity>(rawMaterialQuantity);
             }
         }
     }
@@ -39,16 +39,6 @@ namespace Coil.Api.Features.RawMaterials
             app.MapGet("/rawmaterialquantity/{rawMaterialId:int}", async (int rawMaterialId, IRequestHandler<GetRawMaterialQuantity.RawMaterialQuantityQuery, Result<RawMaterialQuantity>> handler, CancellationToken cancellationToken) =>
             {
                 var result = await handler.Handle(new GetRawMaterialQuantity.RawMaterialQuantityQuery(rawMaterialId), cancellationToken);
-
-                if (result.IsFailure)
-                {
-                    return Results.NotFound(new
-                    {
-                        result.Error.Message,
-                        result.Error.Code
-                    });
-                }
-
                 return Results.Ok(result.Value);
             })
             .WithName("GetRawMaterialQuantity")

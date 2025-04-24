@@ -37,12 +37,6 @@ namespace Coil.Api.Features.RawMaterials
             app.MapGet("/rawmaterials", async (IRequestHandler<AllRawMaterialsDetailsQuery, Result<List<RawMaterial>>> requestHandler, CancellationToken cancellationToken) =>
             {
                 var result = await requestHandler.Handle(new AllRawMaterialsDetailsQuery(), cancellationToken);
-
-                if (result.IsFailure)
-                {
-                    return Results.NotFound(result.Error.Message);
-                }
-
                 return Results.Ok(result.Value);
             })
             .WithName("GetRawMaterialsDetails")
