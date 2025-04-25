@@ -8,6 +8,11 @@ using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using static Coil.Api.Features.ChallengeOperations.GetAllChallengesState;
+using static Coil.Api.Features.ChallengeOperations.SaveChallengeStateDetails;
+using static Coil.Api.Features.ChallengeOperations.UpdateChallengeState;
+using static Coil.Api.Features.Challenges.GetAllChallenges;
+using static Coil.Api.Features.Challenges.SaveChallengeDetails;
 using static Coil.Api.Features.Expenses.SaveExpenseDetails;
 using static Coil.Api.Features.Identity.CreateRole;
 using static Coil.Api.Features.Identity.SetRoleToUser;
@@ -18,9 +23,9 @@ using static Coil.Api.Features.Payments.SavePaymentDetails;
 using static Coil.Api.Features.Plants.GetAllPlantDetails;
 using static Coil.Api.Features.Plants.SavePlantDetails;
 using static Coil.Api.Features.Product.CreateProduct;
+using static Coil.Api.Features.RawMaterialOperations.GetRawMaterialQuantity;
 using static Coil.Api.Features.RawMaterialOperations.SaveRawMaterialPurchaseDetails;
 using static Coil.Api.Features.RawMaterials.GetAllRawMaterialsDetails;
-using static Coil.Api.Features.RawMaterials.GetRawMaterialQuantity;
 using static Coil.Api.Features.RawMaterials.SaveRawMaterialDetails;
 using static Coil.Api.Features.Wheather.GetWheatherForCast;
 
@@ -54,6 +59,11 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>>, GetRawMaterialQuantityHandler>();
             services.AddScoped<IRequestHandler<SaveExpenseCommand, Result<Expense>>, SaveExpenseCommandHandler>();
             services.AddScoped<IRequestHandler<SavePaymentCommand, Result<Payment>>, SavePaymentCommandHandler>();
+            services.AddScoped<IRequestHandler<AllChallengesQuery, Result<List<Challenge>>>, GetAllChallengesHandler>();
+            services.AddScoped<IRequestHandler<SaveChallengeCommand, Result<Challenge>>, SaveChallengeCommandHandler>();
+            services.AddScoped<IRequestHandler<AllChallengesStateQuery, Result<List<ChallengesState>>>, GetAllChallengesStateHandler>();
+            services.AddScoped<IRequestHandler<SaveChallengeStateCommand, Result<ChallengesState>>, SaveChallengesStateCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateChallengeStateCommand, Result<ChallengesState>>, UpdateChallengeStateCommandHandler>();
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
