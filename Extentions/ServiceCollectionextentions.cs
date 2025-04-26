@@ -14,6 +14,7 @@ using static Coil.Api.Features.Identity.SetRoleToUser;
 using static Coil.Api.Features.OutStandingPartyAmount.GetOutStandingAmount;
 using static Coil.Api.Features.Parties.GetAllPartiesDetails;
 using static Coil.Api.Features.Parties.SavePartyDetails;
+using static Coil.Api.Features.Payments.SavePaymentDetails;
 using static Coil.Api.Features.Plants.GetAllPlantDetails;
 using static Coil.Api.Features.Plants.SavePlantDetails;
 using static Coil.Api.Features.Product.CreateProduct;
@@ -52,6 +53,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<SaveRawMaterialPurchaseCommand, Result<RawMaterialPurchase>>, SaveRawMaterialPurchaseCommandHandler>();
             services.AddScoped<IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>>, GetRawMaterialQuantityHandler>();
             services.AddScoped<IRequestHandler<SaveExpenseCommand, Result<Expense>>, SaveExpenseCommandHandler>();
+            services.AddScoped<IRequestHandler<SavePaymentCommand, Result<Payment>>, SavePaymentCommandHandler>();
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
