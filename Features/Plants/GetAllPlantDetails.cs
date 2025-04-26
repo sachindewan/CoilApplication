@@ -19,13 +19,6 @@ namespace Coil.Api.Features.Plants
             {
                 var plants = await _dbContext.Plants.Include(p => p.Parties).ToListAsync(cancellationToken);
 
-                if (plants is null || plants.Count == 0)
-                {
-                    return Result.Failure<List<Plant>>(new Error(
-                        "GetAllPlantDetails.NotFound",
-                        "No plants were found in the database."));
-                }
-
                 return Result.Success(plants);
             }
         }
@@ -38,18 +31,6 @@ namespace Coil.Api.Features.Plants
             app.MapGet("/plants", async (IRequestHandler<AllPlantDetailsQuery, Result<List<Plant>>> requestHandler, CancellationToken cancellationToken) =>
             {
                 var result = await requestHandler.Handle(new AllPlantDetailsQuery(), cancellationToken);
-                if (result.IsFailure)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = "Invalid Request",
-                        Detail = result.Error.Message,
-                        Instance = "/plants"
-                    };
-
-                    return Results.Problem(problemDetails);
-                }
                 return Results.Ok(result.Value);
             })
             .WithName("GetPlantDetails")

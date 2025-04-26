@@ -19,14 +19,6 @@ namespace Coil.Api.Features.Parties
             {
                 var parties = await _dbContext.Parties
                     .ToListAsync(cancellationToken);
-
-                if (parties is null || parties.Count == 0)
-                {
-                    return Result.Failure<List<Party>>(new Error(
-                        "GetAllPartiesDetails.NotFound",
-                        "No parties were found in the database."));
-                }
-
                 return Result.Success(parties);
             }
         }
@@ -39,18 +31,6 @@ namespace Coil.Api.Features.Parties
             app.MapGet("/parties", async (IRequestHandler<AllPartiesDetailsQuery, Result<List<Party>>> requestHandler, CancellationToken cancellationToken) =>
             {
                 var result = await requestHandler.Handle(new AllPartiesDetailsQuery(), cancellationToken);
-                if (result.IsFailure)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = "Invalid Request",
-                        Detail = result.Error.Message,
-                        Instance = "/parties"
-                    };
-
-                    return Results.Problem(problemDetails);
-                }
                 return Results.Ok(result.Value);
             })
             .WithName("GetPartiesDetails")

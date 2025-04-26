@@ -19,13 +19,6 @@ namespace Coil.Api.Features.RawMaterials
             {
                 var rawMaterials = await _dbContext.RawMaterials.ToListAsync(cancellationToken);
 
-                if (rawMaterials is null || rawMaterials.Count == 0)
-                {
-                    return Result.Failure<List<RawMaterial>>(new Error(
-                        "GetAllRawMaterialsDetails.NotFound",
-                        "No raw materials were found in the database."));
-                }
-
                 return Result.Success(rawMaterials);
             }
         }
@@ -38,20 +31,6 @@ namespace Coil.Api.Features.RawMaterials
             app.MapGet("/rawmaterials", async (IRequestHandler<AllRawMaterialsDetailsQuery, Result<List<RawMaterial>>> requestHandler, CancellationToken cancellationToken) =>
             {
                 var result = await requestHandler.Handle(new AllRawMaterialsDetailsQuery(), cancellationToken);
-
-                if (result.IsFailure)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = "Invalid Request",
-                        Detail = result.Error.Message,
-                        Instance = "/rawmaterials"
-                    };
-
-                    return Results.Problem(problemDetails);
-                }
-
                 return Results.Ok(result.Value);
             })
             .WithName("GetRawMaterialsDetails")
