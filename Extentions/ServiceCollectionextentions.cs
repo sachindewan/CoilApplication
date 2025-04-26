@@ -11,6 +11,7 @@ using System.Reflection;
 using static Coil.Api.Features.Expenses.SaveExpenseDetails;
 using static Coil.Api.Features.Identity.CreateRole;
 using static Coil.Api.Features.Identity.SetRoleToUser;
+using static Coil.Api.Features.OutStandingPartyAmount.GetOutStandingAmount;
 using static Coil.Api.Features.Parties.GetAllPartiesDetails;
 using static Coil.Api.Features.Parties.SavePartyDetails;
 using static Coil.Api.Features.Plants.GetAllPlantDetails;
@@ -41,21 +42,21 @@ namespace Coil.Api.Extentions
             AddSwaggerGenDocSecurityRequirements(services);
             services.AddCarter();
             // Register your handlers
-            services.AddTransient<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetWheatherForCastHandler>();
-            services.AddTransient<IRequestHandler<AllPlantDetailsQuery, Result<List<Entities.Plant>>>, GetAllPlantDetailsHandler>();
-            services.AddTransient<IRequestHandler<AllPartiesDetailsQuery, Result<List<Party>>>, GetAllPartiesDetailsHandler>();
-            services.AddTransient<IRequestHandler<AllRawMaterialsDetailsQuery, Result<List<RawMaterial>>>, GetAllRawMaterialsDetailsHandler>();
-            services.AddTransient<IRequestHandler<SavePartyCommand, Result<Party>>, SavePartyCommandHandler>();
-            services.AddTransient<IRequestHandler<SavePlantCommand, Result<Plant>>, SavePlantCommandHandler>();
-            services.AddTransient<IRequestHandler<SaveRawMaterialCommand, Result<RawMaterial>>, SaveRawMaterialCommandHandler>();
-            services.AddTransient<IRequestHandler<SaveRawMaterialPurchaseCommand, Result<RawMaterialPurchase>>, SaveRawMaterialPurchaseCommandHandler>();
-            services.AddTransient<IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>>, GetRawMaterialQuantityHandler>();
-            services.AddTransient<IRequestHandler<SaveExpenseCommand, Result<Expense>>, SaveExpenseCommandHandler>();
+            services.AddScoped<IRequestHandler<WheatherForCastQuery, Result<List<WeatherForecastResponse>>>, GetWheatherForCastHandler>();
+            services.AddScoped<IRequestHandler<AllPlantDetailsQuery, Result<List<Entities.Plant>>>, GetAllPlantDetailsHandler>();
+            services.AddScoped<IRequestHandler<AllPartiesDetailsQuery, Result<List<Party>>>, GetAllPartiesDetailsHandler>();
+            services.AddScoped<IRequestHandler<AllRawMaterialsDetailsQuery, Result<List<RawMaterial>>>, GetAllRawMaterialsDetailsHandler>();
+            services.AddScoped<IRequestHandler<SavePartyCommand, Result<Party>>, SavePartyCommandHandler>();
+            services.AddScoped<IRequestHandler<SavePlantCommand, Result<Plant>>, SavePlantCommandHandler>();
+            services.AddScoped<IRequestHandler<SaveRawMaterialCommand, Result<RawMaterial>>, SaveRawMaterialCommandHandler>();
+            services.AddScoped<IRequestHandler<SaveRawMaterialPurchaseCommand, Result<RawMaterialPurchase>>, SaveRawMaterialPurchaseCommandHandler>();
+            services.AddScoped<IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>>, GetRawMaterialQuantityHandler>();
+            services.AddScoped<IRequestHandler<SaveExpenseCommand, Result<Expense>>, SaveExpenseCommandHandler>();
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
             services.AddScoped<IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>, CreateProductHandler>();
-
+            services.AddScoped<IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>>, GetOutStandingPurchaseAmountHandler>();
             services.AddExceptionHandler<GlobalExceptionMiddleware>();
             services.AddValidatorsFromAssembly(currentAssembly);
             return services;
