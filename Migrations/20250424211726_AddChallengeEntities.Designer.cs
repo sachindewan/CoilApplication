@@ -3,6 +3,7 @@ using System;
 using Coil.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Coil.Api.Migrations
 {
     [DbContext(typeof(CoilApplicationDbContext))]
-    partial class CoilApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250424211726_AddChallengeEntities")]
+    partial class AddChallengeEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,6 +57,10 @@ namespace Coil.Api.Migrations
                     b.Property<DateTime>("ChallengeStartDateTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ChallengeState")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("text");
@@ -69,9 +76,6 @@ namespace Coil.Api.Migrations
 
                     b.Property<int>("PlantId")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("State")
-                        .HasColumnType("boolean");
 
                     b.HasKey("ChallengesStateId");
 
@@ -158,48 +162,6 @@ namespace Coil.Api.Migrations
                     b.HasIndex("PlantId");
 
                     b.ToTable("Parties");
-                });
-
-            modelBuilder.Entity("Coil.Api.Entities.Payment", b =>
-                {
-                    b.Property<int>("PaymentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PaymentId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("PartyId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("PlantId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PaymentId");
-
-                    b.HasIndex("PartyId");
-
-                    b.HasIndex("PlantId");
-
-                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("Coil.Api.Entities.Plant", b =>
@@ -425,25 +387,6 @@ namespace Coil.Api.Migrations
                         .HasForeignKey("PlantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Coil.Api.Entities.Payment", b =>
-                {
-                    b.HasOne("Coil.Api.Entities.Party", "Party")
-                        .WithMany()
-                        .HasForeignKey("PartyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Coil.Api.Entities.Plant", "Plant")
-                        .WithMany()
-                        .HasForeignKey("PlantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Party");
-
-                    b.Navigation("Plant");
                 });
 
             modelBuilder.Entity("Coil.Api.Entities.ProductImage", b =>

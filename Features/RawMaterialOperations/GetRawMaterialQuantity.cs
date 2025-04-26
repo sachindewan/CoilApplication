@@ -5,8 +5,9 @@ using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Coil.Api.Features.RawMaterialOperations.GetRawMaterialQuantity;
 
-namespace Coil.Api.Features.RawMaterials
+namespace Coil.Api.Features.RawMaterialOperations
 {
     public static class GetRawMaterialQuantity
     {
@@ -28,7 +29,7 @@ namespace Coil.Api.Features.RawMaterials
                         $"Raw material quantity for RawMaterialId {request.RawMaterialId} was not found."));
                 }
 
-                return Result.Success<RawMaterialQuantity>(rawMaterialQuantity);
+                return Result.Success(rawMaterialQuantity);
             }
         }
     }
@@ -37,9 +38,9 @@ namespace Coil.Api.Features.RawMaterials
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/rawmaterialquantity/{rawMaterialId:int}", async (int rawMaterialId, IRequestHandler<GetRawMaterialQuantity.RawMaterialQuantityQuery, Result<RawMaterialQuantity>> handler, CancellationToken cancellationToken) =>
+            app.MapGet("/rawmaterialquantity/{rawMaterialId:int}", async (int rawMaterialId, IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>> handler, CancellationToken cancellationToken) =>
             {
-                var result = await handler.Handle(new GetRawMaterialQuantity.RawMaterialQuantityQuery(rawMaterialId), cancellationToken);
+                var result = await handler.Handle(new RawMaterialQuantityQuery(rawMaterialId), cancellationToken);
                 if (result.IsFailure)
                 {
                     var problemDetails = new ProblemDetails
