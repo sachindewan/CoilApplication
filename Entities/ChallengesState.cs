@@ -22,6 +22,6 @@ namespace Coil.Api.Entities
         public DateTime ChallengeStartDateTime { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Challenge State is required.")]
-        public string ChallengeState { get; set; } = null!;
+        public bool State { get; set; } = true;
     }
 }

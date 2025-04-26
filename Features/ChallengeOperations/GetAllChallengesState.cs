@@ -22,12 +22,6 @@ namespace Coil.Api.Features.ChallengeOperations
                     .Include(cs => cs.Challenge)
                     .ToListAsync(cancellationToken);
 
-                if (challengesStates == null || challengesStates.Count == 0)
-                {
-                    return Result.Failure<List<ChallengesState>>(new Error(
-                        "GetAllChallengesState.NotFound",
-                        "No Challenges state found."));
-                }
                 return Result.Success(challengesStates);
             }
         }
@@ -40,18 +34,6 @@ namespace Coil.Api.Features.ChallengeOperations
             app.MapGet("/challengesstate", async (IRequestHandler<AllChallengesStateQuery, Result<List<ChallengesState>>> handler, CancellationToken cancellationToken) =>
             {
                 var result = await handler.Handle(new AllChallengesStateQuery(), cancellationToken);
-                if (result.IsFailure)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = "Invalid Request",
-                        Detail = result.Error.Message,
-                        Instance = "/challengesstate"
-                    };
-
-                    return Results.Problem(problemDetails);
-                }
                 return Results.Ok(result.Value);
             })
             .WithName("GetAllChallengesState")

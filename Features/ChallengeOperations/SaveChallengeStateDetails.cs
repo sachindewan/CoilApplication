@@ -40,7 +40,6 @@ namespace Coil.Api.Features.ChallengeOperations
 
         internal sealed class SaveChallengesStateCommandHandler(CoilApplicationDbContext _dbContext) : IRequestHandler<SaveChallengeStateCommand, Result<ChallengesState>>
         {
-            private static readonly string ChallengeStateOpen = "OPEN";
             public async Task<Result<ChallengesState>> Handle(SaveChallengeStateCommand request, CancellationToken cancellationToken)
             {
                 // Validate Plant existence
@@ -65,7 +64,7 @@ namespace Coil.Api.Features.ChallengeOperations
                 var duplicateExists = await _dbContext.ChallengesStates.AnyAsync(cs =>
                     cs.PlantId == request.PlantId &&
                     cs.ChallengeId == request.ChallengeId &&
-                    cs.ChallengeState == ChallengeStateOpen, cancellationToken);
+                    cs.State == true, cancellationToken);
 
                 if (duplicateExists)
                 {
@@ -79,8 +78,7 @@ namespace Coil.Api.Features.ChallengeOperations
                 {
                     PlantId = request.PlantId,
                     ChallengeId = request.ChallengeId,
-                    ChallengeStartDateTime = request.ChallengeStartDateTime,
-                    ChallengeState = ChallengeStateOpen
+                    ChallengeStartDateTime = request.ChallengeStartDateTime
                 };
 
                 // Add the new challenge state

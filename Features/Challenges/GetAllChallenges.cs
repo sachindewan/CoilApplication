@@ -18,12 +18,6 @@ namespace Coil.Api.Features.Challenges
             public async Task<Result<List<Challenge>>> Handle(AllChallengesQuery request, CancellationToken cancellationToken)
             {
                 var challenges = await _dbContext.Challenges.ToListAsync(cancellationToken);
-                if (challenges is null || challenges.Count == 0)
-                {
-                    return Result.Failure<List<Challenge>>(new Error(
-                        "GetAllChallenges.NotFound",
-                        "No challenges were found in the database."));
-                }
                 return Result.Success(challenges);
             }
         }
@@ -36,18 +30,6 @@ namespace Coil.Api.Features.Challenges
             app.MapGet("/challenges", async (IRequestHandler<AllChallengesQuery, Result<List<Challenge>>> handler, CancellationToken cancellationToken) =>
             {
                 var result = await handler.Handle(new AllChallengesQuery(), cancellationToken);
-                if (result.IsFailure)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = "Invalid Request",
-                        Detail = result.Error.Message,
-                        Instance = "/challenges"
-                    };
-
-                    return Results.Problem(problemDetails);
-                }
                 return Results.Ok(result.Value);
             })
             .WithName("GetAllChallenges")

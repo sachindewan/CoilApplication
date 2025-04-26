@@ -26,8 +26,6 @@ namespace Coil.Api.Features.ChallengeOperations
 
         internal sealed class UpdateChallengeStateCommandHandler(CoilApplicationDbContext _dbContext) : IRequestHandler<UpdateChallengeStateCommand, Result<ChallengesState>>
         {
-            private static readonly string ChallengeStateClosed = "CLOSED";
-
             public async Task<Result<ChallengesState>> Handle(UpdateChallengeStateCommand request, CancellationToken cancellationToken)
             {
                 // Fetch the ChallengesState entity
@@ -44,7 +42,7 @@ namespace Coil.Api.Features.ChallengeOperations
                 }
 
                 // Check if the ChallengeState is already CLOSED
-                if (challengesState.ChallengeState == ChallengeStateClosed)
+                if (challengesState.State == false)
                 {
                     return Result.Failure<ChallengesState>(new Error(
                         "UpdateChallengeState.AlreadyClosed",
@@ -52,7 +50,7 @@ namespace Coil.Api.Features.ChallengeOperations
                 }
 
                 // Update the ChallengeState property
-                challengesState.ChallengeState = ChallengeStateClosed;
+                challengesState.State = false;
 
                 // Save changes to the database
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -65,7 +63,7 @@ namespace Coil.Api.Features.ChallengeOperations
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPut("/updatechallengestate/{id}/closed", async (
+            app.MapPut("/closechallengestate/{id}", async (
                 int id,
                 IRequestHandler<UpdateChallengeStateCommand, Result<ChallengesState>> handler,
                 IValidator<UpdateChallengeStateCommand> validator,
@@ -81,7 +79,7 @@ namespace Coil.Api.Features.ChallengeOperations
                         Status = StatusCodes.Status400BadRequest,
                         Title = "Invalid Request",
                         Detail = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-                        Instance = $"/updatechallengestate/{id}/closed"
+                        Instance = $"/closechallengestate/{id}"
                     };
                     return Results.Problem(problemDetails);
                 }
@@ -95,14 +93,14 @@ namespace Coil.Api.Features.ChallengeOperations
                         Status = StatusCodes.Status404NotFound,
                         Title = "Invalid Request",
                         Detail = result.Error.Message,
-                        Instance = $"/updatechallengestate/{id}/closed"
+                        Instance = $"/closechallengestate/{id}"
                     };
                     return Results.Problem(problemDetails);
                 }
 
                 return Results.Ok(result.Value);
             })
-            .WithName("UpdateChallengeState")
+            .WithName("CloseChallengeState")
             .WithTags("CoilApi")
             .RequireAuthorization("coil.api")
             .Produces(StatusCodes.Status201Created, typeof(string))
