@@ -1,4 +1,5 @@
 ﻿using Carter;
+using Coil.Api.Entities;
 using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
 using FluentValidation;
@@ -29,11 +30,11 @@ namespace Coil.Api.Features.Identity
 
         internal sealed class SetRoleToUserHandler : IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>
         {
-            private readonly UserManager<IdentityUser> _userManager;
+            private readonly UserManager<ApplicationUser> _userManager;
             private readonly RoleManager<IdentityRole> _roleManager;
             private readonly IValidator<SetUserRoleQuery> _validator;
 
-            public SetRoleToUserHandler(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IValidator<SetUserRoleQuery> validator)
+            public SetRoleToUserHandler(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IValidator<SetUserRoleQuery> validator)
             {
                 _userManager = userManager;
                 _roleManager = roleManager;

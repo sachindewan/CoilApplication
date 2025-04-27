@@ -1,4 +1,5 @@
 ﻿using Carter;
+using Coil.Api.Database;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,7 +12,7 @@ namespace Coil.Api.Features.Identity
         {
 
 
-            app.MapGet("/get/role", (HttpContext context) =>
+            app.MapGet("/get/user-information", (HttpContext context, CoilApplicationDbContext dbContext , CoilIdentityDbContext identityDbContext) =>
             {
                 if (!context.User.Identity.IsAuthenticated)
                 {
@@ -39,7 +40,23 @@ namespace Coil.Api.Features.Identity
                     });
                 }
 
-                return Results.Ok(roleClaims);
+                if (!roleClaims.Any(x => x.Value == "Partner"))
+                {
+                    return Results.Ok(new
+                    {
+                        Claims = roleClaims,
+                    });
+                }
+
+                var user = identityDbContext.Users.FirstOrDefault(x => x.UserName == context.User.Identity.Name);
+
+                var assignedPlant = dbContext.Plants.FirstOrDefault(x => x.PlantId == user.PlantId);
+
+                return Results.Ok(new
+                {
+                    Claims = roleClaims,
+                    AssignedPlant = assignedPlant
+                });
             })
             .WithTags("CoilApi")
             .WithName(nameof(GetRoleEndpoint))

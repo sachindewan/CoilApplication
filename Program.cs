@@ -1,4 +1,5 @@
 using Carter;
+using Coil.Api.Entities;
 using Coil.Api.Extentions;
 using Microsoft.AspNetCore.Identity;
 
@@ -23,7 +24,7 @@ app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
 app.UseStaticFiles();
-app.MapGroup("api/auth").WithTags("Identity.Apis").MapIdentityApi<IdentityUser>();
+app.MapGroup("api/auth").WithTags("Identity.Apis").MapIdentityApi<ApplicationUser>();
 app.MapCarter();
 app.Run();
 

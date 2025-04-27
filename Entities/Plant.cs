@@ -13,5 +13,7 @@ namespace Coil.Api.Entities
         [Required(AllowEmptyStrings = false, ErrorMessage = "Location is required.")]
         public required string Location { get; set; }
         public List<Party> Parties { get; set; } = [];
+
+        public List<ApplicationUser> ApplicationUsers = [];
     }
 }

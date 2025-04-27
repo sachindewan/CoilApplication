@@ -1,27 +1,24 @@
 ﻿using Carter;
 using Coil.Api.Database;
-using Coil.Api.Entities;
-using Coil.Api.Features.RawMaterials;
 using Coil.Api.Shared;
 using Coil.Api.Shared.MediatR;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Coil.Api.Features.OutStandingPartyAmount.GetOutStandingAmount;
-using static Coil.Api.Features.Product.CreateProduct;
 
 namespace Coil.Api.Features.OutStandingPartyAmount
 {
     public static class GetOutStandingAmount
     {
-        public record GetOutStandingPurchaseAmountQuery(int PlantId) : IRequest<Result<GetOutStandingPurchaseAmountResponse>>;
+        public record GetOutStandingPurchaseAmountQuery(int PartyId) : IRequest<Result<GetOutStandingPurchaseAmountResponse>>;
         public record GetOutStandingPurchaseAmountResponse(string ParyName , decimal Amount);
 
         public class GetOutStandingPurchaseAmountQueryValidator : AbstractValidator<GetOutStandingPurchaseAmountQuery>
         {
             public GetOutStandingPurchaseAmountQueryValidator()
             {
-                RuleFor(x => x.PlantId).GreaterThan(0).WithMessage("party Id should be greater than 0");
+                RuleFor(x => x.PartyId).GreaterThan(0).WithMessage("party Id should be greater than 0");
             }
         }
         internal sealed class GetOutStandingPurchaseAmountHandler(CoilApplicationDbContext dbContext, IValidator<GetOutStandingPurchaseAmountQuery> validator) : IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>>
@@ -30,15 +27,17 @@ namespace Coil.Api.Features.OutStandingPartyAmount
             {
                 var validationResul = validator.Validate(request);
                 if (validationResul != null && !validationResul.IsValid) {
-                    return Result.Failure<GetOutStandingPurchaseAmountResponse>(new Error("GetOutStandingAmount.InvalidRequest", $"Plant ID {request.PlantId} is invalid"));
+                    return Result.Failure<GetOutStandingPurchaseAmountResponse>(new Error("GetOutStandingAmount.InvalidRequest", $"Plant ID {request.PartyId} is invalid"));
                 }
 
-                var purchaseDetails = await dbContext.RawMaterialPurchases.Include(x=>x.Party).Where(x=>x.PlantId==request.PlantId).ToListAsync();
+                var purchaseDetails = await dbContext.RawMaterialPurchases.Include(x=>x.Party).Where(x=>x.PartyId==request.PartyId).ToListAsync(cancellationToken);
 
                 var totalDueAmount= purchaseDetails.Sum(x => x.TotalBillAmount);
 
-                // Need to get the payment done till now and then minus from totalAmountDue
-                //var totalPaymentMade = await dbContext.pay
+                var totalPaymentData = await dbContext.Payments.Where(x=>x.PartyId==request.PartyId).ToListAsync(cancellationToken);
+                var totalPaymentMade = totalPaymentData.Sum(x => x.Amount);
+
+                totalDueAmount = totalDueAmount - totalPaymentMade;
 
                 return Result.Success(new GetOutStandingPurchaseAmountResponse(purchaseDetails.FirstOrDefault()?.Party?.PartyName, totalDueAmount));
             }
@@ -51,9 +50,9 @@ namespace Coil.Api.Features.OutStandingPartyAmount
         public void AddRoutes(IEndpointRouteBuilder app)
         {
 
-            app.MapGet("/outstanding-party-amount/{plantId:int}", async (int  plantId, IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>> requestHandler, CancellationToken cancellationToken) =>
+            app.MapGet("/outstanding-party-amount/{partyId:int}", async (int partyId, IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>> requestHandler, CancellationToken cancellationToken) =>
             {
-                var result = await requestHandler.Handle(new GetOutStandingPurchaseAmountQuery(plantId), cancellationToken);
+                var result = await requestHandler.Handle(new GetOutStandingPurchaseAmountQuery(partyId), cancellationToken);
                 if (result.IsFailure)
                 {
                     var problemDetails = new ProblemDetails

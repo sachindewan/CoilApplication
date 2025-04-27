@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Coil.Api.Database;
 using Coil.Api.Entities;
+using Coil.Api.Features.UserAssignedToPlant;
 using Coil.Api.Shared;
 using Coil.Api.Shared.Exception.Handler;
 using Coil.Api.Shared.MediatR;
@@ -27,6 +28,7 @@ using static Coil.Api.Features.RawMaterialOperations.GetRawMaterialQuantity;
 using static Coil.Api.Features.RawMaterialOperations.SaveRawMaterialPurchaseDetails;
 using static Coil.Api.Features.RawMaterials.GetAllRawMaterialsDetails;
 using static Coil.Api.Features.RawMaterials.SaveRawMaterialDetails;
+using static Coil.Api.Features.UserAssignedToPlant.AddUserToPlant;
 using static Coil.Api.Features.Wheather.GetWheatherForCast;
 
 namespace Coil.Api.Extentions
@@ -64,6 +66,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<AllChallengesStateQuery, Result<List<ChallengesState>>>, GetAllChallengesStateHandler>();
             services.AddScoped<IRequestHandler<SaveChallengeStateCommand, Result<ChallengesState>>, SaveChallengesStateCommandHandler>();
             services.AddScoped<IRequestHandler<UpdateChallengeStateCommand, Result<ChallengesState>>, UpdateChallengeStateCommandHandler>();
+            services.AddScoped<IRequestHandler<AddUserToPlantCommand, Result<AddUserToPlantCommandResponse>>, AddUserToPlantHandler>();
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
@@ -80,7 +83,7 @@ namespace Coil.Api.Extentions
 
             services.AddDbContext<CoilIdentityDbContext>(o =>
                o.UseNpgsql(configuration.GetConnectionString("CoilDatabaseConnectionString")));
-            services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<CoilIdentityDbContext>().AddApiEndpoints();
+            services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<CoilIdentityDbContext>().AddApiEndpoints();
             return services;
         }
 
