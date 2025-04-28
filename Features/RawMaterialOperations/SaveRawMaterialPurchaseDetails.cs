@@ -149,16 +149,14 @@ namespace Coil.Api.Features.RawMaterialOperations
                             PlantId = request.PlantId,
                             AvailableQuantity = request.Weight
                         };
-
                         _dbContext.RawMaterialQuantities.Add(rawMaterialQuantity);
                     }
                     else
                     {
                         rawMaterialQuantity.AvailableQuantity += request.Weight;
+                        _dbContext.RawMaterialQuantities.Update(rawMaterialQuantity);
                     }
 
-                    // Save the updated RawMaterialQuantity
-                    _dbContext.RawMaterialQuantities.Update(rawMaterialQuantity);
                     await _dbContext.SaveChangesAsync(cancellationToken);
 
                     // Commit the transaction

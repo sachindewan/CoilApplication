@@ -32,9 +32,6 @@ namespace Coil.Api.Features.RawMaterials
         {
             public async Task<Result<RawMaterial>> Handle(SaveRawMaterialCommand request, CancellationToken cancellationToken)
             {
-                // Start a database transaction
-                using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-
                 // Check if a RawMaterial with the same name already exists
                 var rawMaterialExists = await _dbContext.RawMaterials.AnyAsync(rm => rm.RawMaterialName.Trim().ToLower() == request.RawMaterialName.Trim().ToLower(), cancellationToken);
                 if (rawMaterialExists)
