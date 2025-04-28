@@ -79,7 +79,7 @@ namespace Coil.Api.Features.Identity
 
                 var assignedPlant = await dbContext.Plants
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.PlantId == user.PlantId);
+                    .Where(p => p.PlantId == user.PlantId).ToListAsync();
 
                 return Results.Ok(new
                 {
