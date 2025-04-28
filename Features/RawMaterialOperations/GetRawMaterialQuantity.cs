@@ -11,22 +11,23 @@ namespace Coil.Api.Features.RawMaterialOperations
 {
     public static class GetRawMaterialQuantity
     {
-        public record RawMaterialQuantityQuery(int RawMaterialId) : IRequest<Result<RawMaterialQuantity>>;
+        public record RawMaterialQuantityQuery(int RawMaterialId, int PlantId) : IRequest<Result<RawMaterialQuantity>>;
 
         internal sealed class GetRawMaterialQuantityHandler(CoilApplicationDbContext _dbContext) : IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>>
         {
             public async Task<Result<RawMaterialQuantity>> Handle(RawMaterialQuantityQuery request, CancellationToken cancellationToken)
             {
-                // Fetch the RawMaterialQuantity based on RawMaterialId
+                // Fetch the RawMaterialQuantity based on RawMaterialId & PlantID
                 var rawMaterialQuantity = await _dbContext.RawMaterialQuantities
                     .Include(rmq => rmq.RawMaterial) // Include related RawMaterial data
-                    .FirstOrDefaultAsync(rmq => rmq.RawMaterialId == request.RawMaterialId, cancellationToken);
+                    .Include(rmq => rmq.Plant) // Include related Plant data
+                    .FirstOrDefaultAsync(rmq => rmq.RawMaterialId == request.RawMaterialId && rmq.PlantId == request.PlantId, cancellationToken);
 
                 if (rawMaterialQuantity == null)
                 {
                     return Result.Failure<RawMaterialQuantity>(new Error(
                         "GetRawMaterialQuantity.NotFound",
-                        $"Raw material quantity for RawMaterialId {request.RawMaterialId} was not found."));
+                        $"Raw material quantity for RawMaterialId {request.RawMaterialId} & PlantId {request.PlantId} was not found."));
                 }
 
                 return Result.Success(rawMaterialQuantity);
@@ -38,9 +39,9 @@ namespace Coil.Api.Features.RawMaterialOperations
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/rawmaterialquantity/{rawMaterialId:int}", async (int rawMaterialId, IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>> handler, CancellationToken cancellationToken) =>
+            app.MapGet("/rawmaterialquantity/{rawMaterialId:int}/{plantId:int}", async (int rawMaterialId, int plantId, IRequestHandler <RawMaterialQuantityQuery, Result<RawMaterialQuantity>> handler, CancellationToken cancellationToken) =>
             {
-                var result = await handler.Handle(new RawMaterialQuantityQuery(rawMaterialId), cancellationToken);
+                var result = await handler.Handle(new RawMaterialQuantityQuery(rawMaterialId, plantId), cancellationToken);
                 if (result.IsFailure)
                 {
                     var problemDetails = new ProblemDetails
@@ -48,7 +49,7 @@ namespace Coil.Api.Features.RawMaterialOperations
                         Status = StatusCodes.Status400BadRequest,
                         Title = "Invalid Request",
                         Detail = result.Error.Message,
-                        Instance = $"/rawmaterialquantity/{rawMaterialId}"
+                        Instance = $"/rawmaterialquantity/{rawMaterialId}/{plantId}"
                     };
 
                     return Results.Problem(problemDetails);

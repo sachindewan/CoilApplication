@@ -137,18 +137,25 @@ namespace Coil.Api.Features.RawMaterialOperations
                     _dbContext.RawMaterialPurchases.Add(newPurchase);
                     await _dbContext.SaveChangesAsync(cancellationToken);
 
-                    // Update RawMaterialQuantity
+                    // Create/Update RawMaterialQuantity
                     var rawMaterialQuantity = await _dbContext.RawMaterialQuantities
-                        .FirstOrDefaultAsync(rmq => rmq.RawMaterialId == request.RawMaterialId, cancellationToken);
+                        .FirstOrDefaultAsync(rmq => rmq.RawMaterialId == request.RawMaterialId && rmq.PlantId == request.PlantId, cancellationToken);
 
                     if (rawMaterialQuantity == null)
                     {
-                        return Result.Failure<RawMaterialPurchase>(new Error(
-                            "SaveRawMaterialPurchaseCommand.RawMaterialQuantityNotFound",
-                            $"Raw Material Quantity for Raw Material ID {request.RawMaterialId} does not exist."));
-                    }
+                        rawMaterialQuantity = new RawMaterialQuantity
+                        {
+                            RawMaterialId = request.RawMaterialId,
+                            PlantId = request.PlantId,
+                            AvailableQuantity = request.Weight
+                        };
 
-                    rawMaterialQuantity.AvailableQuantity += request.Weight;
+                        _dbContext.RawMaterialQuantities.Add(rawMaterialQuantity);
+                    }
+                    else
+                    {
+                        rawMaterialQuantity.AvailableQuantity += request.Weight;
+                    }
 
                     // Save the updated RawMaterialQuantity
                     _dbContext.RawMaterialQuantities.Update(rawMaterialQuantity);
