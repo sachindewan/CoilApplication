@@ -61,76 +61,122 @@ namespace Coil.Api.Features.Sales
         {
             public async Task<Result<Sale>> Handle(SaveSaleCommand request, CancellationToken cancellationToken)
             {
-                // Validate Plant existence
-                var plantExists = await _dbContext.Plants.AnyAsync(p => p.PlantId == request.PlantId, cancellationToken);
-                if (!plantExists)
-                {
-                    return Result.Failure<Sale>(new Error(
-                        "SaveSaleCommand.PlantNotFound",
-                        $"Plant with ID {request.PlantId} does not exist."));
-                }
+                // Start a database transaction
+                using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-                // Validate RawMaterialsJson structure
                 try
                 {
-                    var rawMaterials = JsonDocument.Parse(request.RawMaterialsJson).RootElement.EnumerateArray();
-                    double totalSalePercentage = 0;
-
-                    foreach (var rawMaterial in rawMaterials)
-                    {
-                        if (!rawMaterial.TryGetProperty("RawMaterialId", out var rawMaterialId) ||
-                            !rawMaterial.TryGetProperty("SalePercentage", out var salePercentage))
-                        {
-                            return Result.Failure<Sale>(new Error(
-                                "SaveSaleCommand.InvalidRawMaterialsJson",
-                                "RawMaterialsJson must contain RawMaterialId and SalePercentage for each item."));
-                        }
-
-                        // Validate RawMaterialId existence
-                        var rawMaterialIdValue = rawMaterialId.GetInt32();
-                        var rawMaterialExists = await _dbContext.RawMaterials.AnyAsync(
-                            rm => rm.RawMaterialId == rawMaterialIdValue, cancellationToken);
-
-                        if (!rawMaterialExists)
-                        {
-                            return Result.Failure<Sale>(new Error(
-                                "SaveSaleCommand.RawMaterialNotFound",
-                                $"RawMaterialId {rawMaterialIdValue} does not exist."));
-                        }
-
-                        // Accumulate SalePercentage
-                        totalSalePercentage += salePercentage.GetDouble();
-                    }
-
-                    // Validate that the total SalePercentage equals 100%
-                    if (Math.Abs(totalSalePercentage - 100.0) > 0.01) // Allowing a small tolerance for floating-point precision
+                    // Validate Plant existence
+                    var plantExists = await _dbContext.Plants.AnyAsync(p => p.PlantId == request.PlantId, cancellationToken);
+                    if (!plantExists)
                     {
                         return Result.Failure<Sale>(new Error(
-                            "SaveSaleCommand.InvalidSalePercentage",
-                            "The sum of SalePercentage must equal 100%."));
+                            "SaveSaleCommand.PlantNotFound",
+                            $"Plant with ID {request.PlantId} does not exist."));
                     }
+
+                    // Validate RawMaterialsJson structure
+                    try
+                    {
+                        var rawMaterials = JsonDocument.Parse(request.RawMaterialsJson).RootElement.EnumerateArray();
+                        double totalSalePercentage = 0;
+
+                        foreach (var rawMaterial in rawMaterials)
+                        {
+                            if (!rawMaterial.TryGetProperty("RawMaterialId", out var rawMaterialId) ||
+                                !rawMaterial.TryGetProperty("SalePercentage", out var salePercentage))
+                            {
+                                return Result.Failure<Sale>(new Error(
+                                    "SaveSaleCommand.InvalidRawMaterialsJson",
+                                    "RawMaterialsJson must contain RawMaterialId and SalePercentage for each item."));
+                            }
+
+                            var rawMaterialIdValue = rawMaterialId.GetInt32();
+                            var salePercent = salePercentage.GetDouble();
+
+                            // Validate RawMaterialId existence
+                            var rawMaterialExists = await _dbContext.RawMaterials.AnyAsync(
+                                rm => rm.RawMaterialId == rawMaterialIdValue, cancellationToken);
+
+                            if (!rawMaterialExists)
+                            {
+                                return Result.Failure<Sale>(new Error(
+                                    "SaveSaleCommand.RawMaterialNotFound",
+                                    $"RawMaterialId {rawMaterialIdValue} does not exist."));
+                            }
+
+                            // Validate RawMaterialQuantity existence
+                            var rawMaterialQuantity = await _dbContext.RawMaterialQuantities
+                                .FirstOrDefaultAsync(rmq => rmq.RawMaterialId == rawMaterialIdValue && rmq.PlantId == request.PlantId, cancellationToken);
+
+                            if (rawMaterialQuantity == null)
+                            {
+                                return Result.Failure<Sale>(new Error(
+                                    "SaveSaleCommand.RawMaterialQuantityNotFound",
+                                    $"Raw material quantity for RawMaterialId {rawMaterialIdValue} and PlantId {request.PlantId} was not found."));
+                            }
+
+                            if (rawMaterialQuantity.AvailableQuantity <= 0)
+                            {
+                                return Result.Failure<Sale>(new Error(
+                                    "SaveSaleCommand.NoAvailableQuantity",
+                                    $"Available quantity is 0 for RawMaterialId {rawMaterialIdValue} and PlantId {request.PlantId}. Cannot process sale."));
+                            }
+
+                            // Calculate the value of the sale percentage
+                            var salePercentageValue = rawMaterialQuantity.AvailableQuantity * (decimal)(salePercent / 100);
+
+                            // Subtract the sale percentage value from the available quantity
+                            rawMaterialQuantity.AvailableQuantity -= salePercentageValue;
+
+                            // Update the RawMaterialQuantity in the database
+                            _dbContext.RawMaterialQuantities.Update(rawMaterialQuantity);
+
+                            // Accumulate SalePercentage
+                            totalSalePercentage += salePercent;
+                        }
+
+                        // Validate that the total SalePercentage equals 100%
+                        if (Math.Abs(totalSalePercentage - 100.0) > 0.01) // Allowing a small tolerance for floating-point precision
+                        {
+                            return Result.Failure<Sale>(new Error(
+                                "SaveSaleCommand.InvalidSalePercentage",
+                                "The sum of SalePercentage must equal 100%."));
+                        }
+                    }
+                    catch
+                    {
+                        return Result.Failure<Sale>(new Error(
+                            "SaveSaleCommand.InvalidRawMaterialsJson",
+                            "RawMaterialsJson is not a valid JSON array."));
+                    }
+
+                    // Create a new Sale entity
+                    var newSale = new Sale
+                    {
+                        PlantId = request.PlantId,
+                        Weight = request.Weight,
+                        SaleDate = request.SaleDate,
+                        RawMaterialsJson = request.RawMaterialsJson
+                    };
+
+                    // Add the new sale
+                    _dbContext.Sales.Add(newSale);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    // Commit the transaction
+                    await transaction.CommitAsync(cancellationToken);
+
+                    return Result.Success(newSale);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    // Rollback the transaction in case of an error
+                    await transaction.RollbackAsync(cancellationToken);
                     return Result.Failure<Sale>(new Error(
-                        "SaveSaleCommand.InvalidRawMaterialsJson",
-                        "RawMaterialsJson is not a valid JSON array."));
+                        "SaveSaleCommand.TransactionFailed",
+                        $"An error occurred while processing the transaction: {ex.Message}"));
                 }
-
-                // Create a new Sale entity
-                var newSale = new Sale
-                {
-                    PlantId = request.PlantId,
-                    Weight = request.Weight,
-                    SaleDate = request.SaleDate,
-                    RawMaterialsJson = request.RawMaterialsJson
-                };
-
-                // Add the new sale
-                _dbContext.Sales.Add(newSale);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-
-                return Result.Success(newSale);
             }
         }
     }
