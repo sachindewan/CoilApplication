@@ -16,6 +16,8 @@ namespace Coil.Api.Database
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Challenge> Challenges { get; set; } = null!;
         public DbSet<ChallengesState> ChallengesStates { get; set; } = null!;
+        public DbSet<Wastage> Wastages { get; set; }
+        public DbSet<Sale> Sales { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

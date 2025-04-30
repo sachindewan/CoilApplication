@@ -3,6 +3,7 @@ using System;
 using Coil.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Coil.Api.Migrations
 {
     [DbContext(typeof(CoilApplicationDbContext))]
-    partial class CoilApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250429210417_AddWastageEntityDetails")]
+    partial class AddWastageEntityDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -385,47 +388,6 @@ namespace Coil.Api.Migrations
                     b.ToTable("RawMaterialQuantities");
                 });
 
-            modelBuilder.Entity("Coil.Api.Entities.Sale", b =>
-                {
-                    b.Property<int>("SaleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SaleId"));
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("PlantId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("RawMaterialsJson")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("SaleDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<double>("Weight")
-                        .HasColumnType("double precision");
-
-                    b.HasKey("SaleId");
-
-                    b.HasIndex("PlantId");
-
-                    b.ToTable("Sales");
-                });
-
             modelBuilder.Entity("Coil.Api.Entities.Wastage", b =>
                 {
                     b.Property<int>("WastageId")
@@ -589,17 +551,6 @@ namespace Coil.Api.Migrations
                     b.Navigation("Plant");
 
                     b.Navigation("RawMaterial");
-                });
-
-            modelBuilder.Entity("Coil.Api.Entities.Sale", b =>
-                {
-                    b.HasOne("Coil.Api.Entities.Plant", "Plant")
-                        .WithMany()
-                        .HasForeignKey("PlantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Plant");
                 });
 
             modelBuilder.Entity("Coil.Api.Entities.Wastage", b =>
