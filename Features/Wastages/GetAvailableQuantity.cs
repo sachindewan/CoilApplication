@@ -57,7 +57,7 @@ namespace Coil.Api.Features.Wastages
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/wastage/availablequantity/{plantId:int}/{rawMaterialId:int}", async (
+            app.MapGet("/availablequantity/after-last-wastage-added/{plantId:int}/{rawMaterialId:int}", async (
                 int plantId, int rawMaterialId,
                 IRequestHandler<GetAvailableQuantityQuery, Result<double>> handler,
                 CancellationToken cancellationToken) =>
