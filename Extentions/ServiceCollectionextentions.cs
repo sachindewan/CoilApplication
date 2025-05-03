@@ -16,6 +16,7 @@ using static Coil.Api.Features.ChallengeOperations.UpdateChallengeState;
 using static Coil.Api.Features.Challenges.GetAllChallenges;
 using static Coil.Api.Features.Challenges.SaveChallengeDetails;
 using static Coil.Api.Features.Cost.GetAverageCost;
+using static Coil.Api.Features.Enquiry.Enquiry;
 using static Coil.Api.Features.Expenses.SaveExpenseDetails;
 using static Coil.Api.Features.Identity.CreateRole;
 using static Coil.Api.Features.Identity.SetRoleToUser;
@@ -83,6 +84,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>, CreateProductHandler>();
             services.AddScoped<IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>>, GetOutStandingPurchaseAmountHandler>();
             services.AddScoped<IRequestHandler<GetAverageCostQuery, Result<GetAverageCostResponse>>, GetAverageCostHandler>();
+            services.AddScoped<IRequestHandler<EnquiryCommand, Result<EnquiryResponse>>, EnquiryHandler>();
             services.AddExceptionHandler<GlobalExceptionMiddleware>();
             services.AddValidatorsFromAssembly(currentAssembly);
             return services;

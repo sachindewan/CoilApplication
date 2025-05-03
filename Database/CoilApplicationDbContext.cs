@@ -19,6 +19,7 @@ namespace Coil.Api.Database
         public DbSet<Wastage> Wastages { get; set; }
         public DbSet<Sale> Sales { get; set; }
 
+        public DbSet<Enquiry> Enquiries { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>()
