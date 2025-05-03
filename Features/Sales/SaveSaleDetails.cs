@@ -185,7 +185,7 @@ namespace Coil.Api.Features.Sales
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/sales", async (SaveSaleCommand command, IRequestHandler<SaveSaleCommand, Result<Sale>> handler, IValidator<SaveSaleCommand> validator, CancellationToken cancellationToken) =>
+            app.MapPost("/sale", async (SaveSaleCommand command, IRequestHandler<SaveSaleCommand, Result<Sale>> handler, IValidator<SaveSaleCommand> validator, CancellationToken cancellationToken) =>
             {
                 var validationResult = await validator.ValidateAsync(command, cancellationToken);
                 if (!validationResult.IsValid)
@@ -195,7 +195,7 @@ namespace Coil.Api.Features.Sales
                         Status = StatusCodes.Status400BadRequest,
                         Title = "Invalid Request",
                         Detail = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-                        Instance = "/sales"
+                        Instance = "/sale"
                     };
                     return Results.Problem(problemDetails);
                 }
@@ -209,12 +209,12 @@ namespace Coil.Api.Features.Sales
                         Status = StatusCodes.Status400BadRequest,
                         Title = "Invalid Request",
                         Detail = result.Error.Message,
-                        Instance = "/sales"
+                        Instance = "/sale"
                     };
                     return Results.Problem(problemDetails);
                 }
 
-                return Results.Created($"/sales/{result.Value.SaleId}", result.Value);
+                return Results.Created($"/sale/{result.Value.SaleId}", result.Value);
             })
             .WithName("SaveSaleDetails")
             .WithTags("CoilApi")

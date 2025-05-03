@@ -28,6 +28,7 @@ using static Coil.Api.Features.RawMaterialOperations.GetRawMaterialQuantity;
 using static Coil.Api.Features.RawMaterialOperations.SaveRawMaterialPurchaseDetails;
 using static Coil.Api.Features.RawMaterials.GetAllRawMaterialsDetails;
 using static Coil.Api.Features.RawMaterials.SaveRawMaterialDetails;
+using static Coil.Api.Features.Sales.GetSalesDetails;
 using static Coil.Api.Features.Sales.SaveSaleDetails;
 using static Coil.Api.Features.UserAssignedToPlant.AddUserToPlant;
 using static Coil.Api.Features.Wastages.GetAvailableQuantity;
@@ -73,6 +74,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<SaveWastageCommand, Result<Wastage>>, SaveWastageCommandHandler>();
             services.AddScoped<IRequestHandler<GetAvailableQuantityQuery, Result<double>>, GetAvailableQuantityQueryHandler>();
             services.AddScoped<IRequestHandler<SaveSaleCommand, Result<Sale>>, SaveSaleCommandHandler>();
+            services.AddScoped<IRequestHandler<GetSalesDetailsQuery, Result<List<Sale>>>, GetSalesDetailsQueryHandler>();
 
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
