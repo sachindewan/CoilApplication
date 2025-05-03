@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Coil.Api.Database;
 using Coil.Api.Entities;
+using Coil.Api.Features.Cost;
 using Coil.Api.Features.UserAssignedToPlant;
 using Coil.Api.Shared;
 using Coil.Api.Shared.Exception.Handler;
@@ -14,6 +15,7 @@ using static Coil.Api.Features.ChallengeOperations.SaveChallengeStateDetails;
 using static Coil.Api.Features.ChallengeOperations.UpdateChallengeState;
 using static Coil.Api.Features.Challenges.GetAllChallenges;
 using static Coil.Api.Features.Challenges.SaveChallengeDetails;
+using static Coil.Api.Features.Cost.GetAverageCost;
 using static Coil.Api.Features.Expenses.SaveExpenseDetails;
 using static Coil.Api.Features.Identity.CreateRole;
 using static Coil.Api.Features.Identity.SetRoleToUser;
@@ -80,6 +82,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
             services.AddScoped<IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>, CreateProductHandler>();
             services.AddScoped<IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>>, GetOutStandingPurchaseAmountHandler>();
+            services.AddScoped<IRequestHandler<GetAverageCostQuery, Result<GetAverageCostResponse>>, GetAverageCostHandler>();
             services.AddExceptionHandler<GlobalExceptionMiddleware>();
             services.AddValidatorsFromAssembly(currentAssembly);
             return services;
