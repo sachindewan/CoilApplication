@@ -65,7 +65,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<SavePlantCommand, Result<Plant>>, SavePlantCommandHandler>();
             services.AddScoped<IRequestHandler<SaveRawMaterialCommand, Result<RawMaterial>>, SaveRawMaterialCommandHandler>();
             services.AddScoped<IRequestHandler<SaveRawMaterialPurchaseCommand, Result<RawMaterialPurchase>>, SaveRawMaterialPurchaseCommandHandler>();
-            services.AddScoped<IRequestHandler<RawMaterialQuantityQuery, Result<RawMaterialQuantity>>, GetRawMaterialQuantityHandler>();
+            services.AddScoped<IRequestHandler<RawMaterialQuantityQuery, Result<object>>, GetRawMaterialQuantityHandler>();
             services.AddScoped<IRequestHandler<SaveExpenseCommand, Result<Expense>>, SaveExpenseCommandHandler>();
             services.AddScoped<IRequestHandler<SavePaymentCommand, Result<Payment>>, SavePaymentCommandHandler>();
             services.AddScoped<IRequestHandler<AllChallengesQuery, Result<List<Challenge>>>, GetAllChallengesHandler>();
