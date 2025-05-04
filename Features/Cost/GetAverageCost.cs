@@ -41,10 +41,9 @@ namespace Coil.Api.Features.Cost
                     .GroupBy(p => p.RawMaterial.RawMaterialName)
                     .Select(group =>
                     {
-                        var materialCost = group.Sum(p => p.Weight);
-                        var wastageCost = group.Sum(p => p.Weight); // Replace with actual property name if different
+                        var materialCost = group.Sum(p => p.TotalBillAmount);
 
-                        var averageCost = (materialCost + wastageCost + totalExpenses) / totalSales;
+                        var averageCost = (materialCost  + totalExpenses) / totalSales;
 
                         return new GetAverageCostResponse(
                             RawMaterialName: group.Key,

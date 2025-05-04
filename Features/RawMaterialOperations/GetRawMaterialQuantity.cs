@@ -11,12 +11,13 @@ namespace Coil.Api.Features.RawMaterialOperations
 {
     public static class GetRawMaterialQuantity
     {
-        public record RawMaterialQuantityQuery(int? RawMaterialId, int PlantId) : IRequest<Result<object>>;
+        public record RawMaterialQuantityQuery(int? RawMaterialId, int PlantId) : IRequest<Result<List<RawMaterialQuantity>>>;
 
-        internal sealed class GetRawMaterialQuantityHandler(CoilApplicationDbContext _dbContext) : IRequestHandler<RawMaterialQuantityQuery, Result<object>>
+        internal sealed class GetRawMaterialQuantityHandler(CoilApplicationDbContext _dbContext) : IRequestHandler<RawMaterialQuantityQuery, Result<List<RawMaterialQuantity>>>
         {
-            public async Task<Result<object>> Handle(RawMaterialQuantityQuery request, CancellationToken cancellationToken)
+            public async Task<Result<List<RawMaterialQuantity>>> Handle(RawMaterialQuantityQuery request, CancellationToken cancellationToken)
             {
+                List<RawMaterialQuantity> rawMaterialQuantities = new List<RawMaterialQuantity>();
                 var query = _dbContext.RawMaterialQuantities
                     .Include(rmq => rmq.RawMaterial)
                     .Include(rmq => rmq.Plant)
@@ -24,31 +25,15 @@ namespace Coil.Api.Features.RawMaterialOperations
 
                 if (request.RawMaterialId == null)
                 {
-                    var rawMaterialQuantities = await query.ToListAsync(cancellationToken);
-
-                    if (rawMaterialQuantities.Count == 0)
-                    {
-                        return Result.Failure<object>(new Error(
-                            "GetRawMaterialQuantity.NotFound",
-                            $"No raw material quantities found for PlantId {request.PlantId}."));
-                    }
-
-                    return Result.Success<object>(rawMaterialQuantities);
+                    rawMaterialQuantities = await query.ToListAsync(cancellationToken);
                 }
                 else
                 {
                     var rawMaterialQuantity = await query
                         .FirstOrDefaultAsync(rmq => rmq.RawMaterialId == request.RawMaterialId, cancellationToken);
-
-                    if (rawMaterialQuantity == null)
-                    {
-                        return Result.Failure<object>(new Error(
-                            "GetRawMaterialQuantity.NotFound",
-                            $"Raw material quantity for RawMaterialId {request.RawMaterialId} & PlantId {request.PlantId} was not found."));
-                    }
-
-                    return Result.Success<object>(rawMaterialQuantity);
+                    rawMaterialQuantities.Add(rawMaterialQuantity);
                 }
+                return Result.Success<List<RawMaterialQuantity>>(rawMaterialQuantities);
             }
         }
     }
@@ -57,21 +42,9 @@ namespace Coil.Api.Features.RawMaterialOperations
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/rawmaterialquantity", async ([FromQuery] int? rawMaterialId, [FromQuery] int plantId, IRequestHandler<RawMaterialQuantityQuery, Result<object>> handler, CancellationToken cancellationToken) =>
+            app.MapGet("/rawmaterialquantity", async ([FromQuery] int? rawMaterialId, [FromQuery] int plantId, IRequestHandler<RawMaterialQuantityQuery, Result<List<RawMaterialQuantity>>> handler, CancellationToken cancellationToken) =>
             {
                 var result = await handler.Handle(new RawMaterialQuantityQuery(rawMaterialId, plantId), cancellationToken);
-                if (result.IsFailure)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = "Invalid Request",
-                        Detail = result.Error.Message,
-                        Instance = $"/rawmaterialquantity/{rawMaterialId}/{plantId}"
-                    };
-
-                    return Results.Problem(problemDetails);
-                }
                 return Results.Ok(result.Value);
             })
             .WithName("GetRawMaterialQuantity")
