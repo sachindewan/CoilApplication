@@ -11,35 +11,59 @@ namespace Coil.Api.Features.OutStandingPartyAmount
 {
     public static class GetOutStandingAmount
     {
-        public record GetOutStandingPurchaseAmountQuery(int PartyId) : IRequest<Result<GetOutStandingPurchaseAmountResponse>>;
-        public record GetOutStandingPurchaseAmountResponse(string ParyName , decimal Amount);
+        public record GetOutStandingPurchaseAmountQuery(int PlantId) : IRequest<Result<List<GetOutStandingPurchaseAmountResponse>>>;
+        public record GetOutStandingPurchaseAmountResponse(string PartyName, decimal Amount);
 
         public class GetOutStandingPurchaseAmountQueryValidator : AbstractValidator<GetOutStandingPurchaseAmountQuery>
         {
             public GetOutStandingPurchaseAmountQueryValidator()
             {
-                RuleFor(x => x.PartyId).GreaterThan(0).WithMessage("party Id should be greater than 0");
+                RuleFor(x => x.PlantId).GreaterThan(0).WithMessage("PlantId Id should be greater than 0");
             }
         }
-        internal sealed class GetOutStandingPurchaseAmountHandler(CoilApplicationDbContext dbContext, IValidator<GetOutStandingPurchaseAmountQuery> validator) : IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>>
+        internal sealed class GetOutStandingPurchaseAmountHandler(CoilApplicationDbContext dbContext, IValidator<GetOutStandingPurchaseAmountQuery> validator) : IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<List<GetOutStandingPurchaseAmountResponse>>>
         {
-            public async Task<Result<GetOutStandingPurchaseAmountResponse>> Handle(GetOutStandingPurchaseAmountQuery request, CancellationToken cancellationToken)
+            public async Task<Result<List<GetOutStandingPurchaseAmountResponse>>> Handle(GetOutStandingPurchaseAmountQuery request, CancellationToken cancellationToken)
             {
-                var validationResul = validator.Validate(request);
-                if (validationResul != null && !validationResul.IsValid) {
-                    return Result.Failure<GetOutStandingPurchaseAmountResponse>(new Error("GetOutStandingAmount.InvalidRequest", $"Plant ID {request.PartyId} is invalid"));
+                var validationResult = validator.Validate(request);
+                if (validationResult is { IsValid: false })
+                {
+                    return Result.Failure<List<GetOutStandingPurchaseAmountResponse>>(new Error(
+                        "GetOutStandingAmount.InvalidRequest",
+                        $"Plant ID {request.PlantId} is invalid"));
                 }
 
-                var purchaseDetails = await dbContext.RawMaterialPurchases.Include(x=>x.Party).Where(x=>x.PartyId==request.PartyId).ToListAsync(cancellationToken);
+                var purchases = await dbContext.RawMaterialPurchases
+                    .Where(x => x.PlantId == request.PlantId)
+                    .GroupBy(x => new { x.PartyId, x.Party.PartyName })
+                    .Select(g => new
+                    {
+                        g.Key.PartyId,
+                        g.Key.PartyName,
+                        TotalAmount = g.Sum(x => x.TotalBillAmount)
+                    })
+                    .ToListAsync(cancellationToken);
 
-                var totalDueAmount= purchaseDetails.Sum(x => x.TotalBillAmount);
+                var payments = await dbContext.Payments
+                    .Where(x => x.PlantId == request.PlantId)
+                    .GroupBy(x => x.PartyId)
+                    .Select(g => new
+                    {
+                        PartyId = g.Key,
+                        TotalPaid = g.Sum(x => x.Amount)
+                    })
+                    .ToListAsync(cancellationToken);
 
-                var totalPaymentData = await dbContext.Payments.Where(x=>x.PartyId==request.PartyId).ToListAsync(cancellationToken);
-                var totalPaymentMade = totalPaymentData.Sum(x => x.Amount);
+                var paymentsDict = payments.ToDictionary(x => x.PartyId, x => x.TotalPaid);
 
-                totalDueAmount = totalDueAmount - totalPaymentMade;
+                var outstandingAmounts = purchases.Select(purchase =>
+                {
+                    paymentsDict.TryGetValue(purchase.PartyId, out var paidAmount);
+                    var outstanding = purchase.TotalAmount - paidAmount;
+                    return new GetOutStandingPurchaseAmountResponse(purchase.PartyName, outstanding);
+                }).ToList();
 
-                return Result.Success(new GetOutStandingPurchaseAmountResponse(purchaseDetails.FirstOrDefault()?.Party?.PartyName, totalDueAmount));
+                return Result.Success(outstandingAmounts);
             }
         }
     }
@@ -50,9 +74,9 @@ namespace Coil.Api.Features.OutStandingPartyAmount
         public void AddRoutes(IEndpointRouteBuilder app)
         {
 
-            app.MapGet("/outstanding-party-amount/{partyId:int}", async (int partyId, IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>> requestHandler, CancellationToken cancellationToken) =>
+            app.MapGet("/outstanding-party-amount/{plantId:int}", async (int plantId, IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<List<GetOutStandingPurchaseAmountResponse>>> requestHandler, CancellationToken cancellationToken) =>
             {
-                var result = await requestHandler.Handle(new GetOutStandingPurchaseAmountQuery(partyId), cancellationToken);
+                var result = await requestHandler.Handle(new GetOutStandingPurchaseAmountQuery(plantId), cancellationToken);
                 if (result.IsFailure)
                 {
                     var problemDetails = new ProblemDetails
@@ -70,7 +94,7 @@ namespace Coil.Api.Features.OutStandingPartyAmount
           .WithName("GetOutStanding")
           .WithTags("CoilApi")
           .RequireAuthorization("coil.api")
-          .Produces(StatusCodes.Status200OK, typeof(GetOutStandingPurchaseAmountResponse))
+          .Produces(StatusCodes.Status200OK, typeof(List<GetOutStandingPurchaseAmountResponse>))
           .Produces(StatusCodes.Status404NotFound)
           .WithOpenApi();
         }
