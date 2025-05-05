@@ -82,7 +82,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<SetUserRoleQuery, Result<SetUserRoleResponse>>, SetRoleToUserHandler>();
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
             services.AddScoped<IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>, CreateProductHandler>();
-            services.AddScoped<IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<GetOutStandingPurchaseAmountResponse>>, GetOutStandingPurchaseAmountHandler>();
+            services.AddScoped<IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<List<GetOutStandingPurchaseAmountResponse>>>, GetOutStandingPurchaseAmountHandler>();
             services.AddScoped<IRequestHandler<GetAverageCostQuery, Result<GetAverageCostResponse>>, GetAverageCostHandler>();
             services.AddScoped<IRequestHandler<EnquiryCommand, Result<EnquiryResponse>>, EnquiryHandler>();
             services.AddExceptionHandler<GlobalExceptionMiddleware>();
