@@ -83,7 +83,7 @@ namespace Coil.Api.Extentions
             services.AddScoped<IRequestHandler<CreateRoleQuery, Result<CreateRoleResponse>>, CreateRoleHandler>();
             services.AddScoped<IRequestHandler<CreateProductQuery, Result<CreateProductResponse>>, CreateProductHandler>();
             services.AddScoped<IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<List<GetOutStandingPurchaseAmountResponse>>>, GetOutStandingPurchaseAmountHandler>();
-            services.AddScoped<IRequestHandler<GetAverageCostQuery, Result<GetAverageCostResponse>>, GetAverageCostHandler>();
+            services.AddScoped<IRequestHandler<GetAverageCostQuery, Result<List<GetAverageCostResponse>>>, GetAverageCostHandler>();
             services.AddScoped<IRequestHandler<EnquiryCommand, Result<EnquiryResponse>>, EnquiryHandler>();
             services.AddExceptionHandler<GlobalExceptionMiddleware>();
             services.AddValidatorsFromAssembly(currentAssembly);

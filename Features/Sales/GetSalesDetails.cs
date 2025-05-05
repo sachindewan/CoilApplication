@@ -11,15 +11,21 @@ namespace Coil.Api.Features.Sales
 {
     public static class GetSalesDetails
     {
-        public record GetSalesDetailsQuery(DateTime StartDate, DateTime EndDate) : IRequest<Result<List<Sale>>>;
+        public record GetSalesDetailsQuery(DateTime StartDate, DateTime EndDate, int? PlantId) : IRequest<Result<List<Sale>>>;
 
         internal sealed class GetSalesDetailsQueryHandler(CoilApplicationDbContext _dbContext) : IRequestHandler<GetSalesDetailsQuery, Result<List<Sale>>>
         {
             public async Task<Result<List<Sale>>> Handle(GetSalesDetailsQuery request, CancellationToken cancellationToken)
             {
-                var sales = await _dbContext.Sales
-                    .Where(s => s.SaleDate >= request.StartDate && s.SaleDate <= request.EndDate)
-                    .ToListAsync(cancellationToken);
+                var query = _dbContext.Sales.AsQueryable();
+                query = query.Where(s => s.SaleDate >= request.StartDate && s.SaleDate <= request.EndDate);
+
+                if (request.PlantId.HasValue)
+                {
+                    query = query.Where(s => s.PlantId == request.PlantId.Value);
+                }
+
+                var sales = await query.ToListAsync(cancellationToken);
 
                 return Result.Success(sales);
             }
@@ -29,12 +35,17 @@ namespace Coil.Api.Features.Sales
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/sales", async ([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, IRequestHandler<GetSalesDetailsQuery, Result<List<Sale>>> handler, CancellationToken cancellationToken) =>
+            app.MapGet("/sales", async (
+                [FromQuery] DateTime startDate,
+                [FromQuery] DateTime endDate,
+                [FromQuery] int? plantId,
+                IRequestHandler<GetSalesDetailsQuery, Result<List<Sale>>> handler,
+                CancellationToken cancellationToken) =>
             {
                 var normalizedStartDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc);
                 var normalizedEndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
 
-                var query = new GetSalesDetailsQuery(normalizedStartDate, normalizedEndDate);
+                var query = new GetSalesDetailsQuery(normalizedStartDate, normalizedEndDate, plantId);
                 var result = await handler.Handle(query, cancellationToken);
 
                 return Results.Ok(result.Value);
