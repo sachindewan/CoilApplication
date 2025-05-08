@@ -98,6 +98,7 @@ namespace Coil.Api.Features.Cost
             })
             .WithName("GetAverageCost")
             .WithTags("CoilApi")
+            .RequireAuthorization("coil.api")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .WithOpenApi();
