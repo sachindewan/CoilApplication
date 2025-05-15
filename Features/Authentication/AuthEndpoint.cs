@@ -23,7 +23,7 @@ namespace Coil.Api.Features.Authentication
                     return Results.Problem(
                         title: "Login Failed",
                         detail: "Invalid username or password.",
-                        statusCode: StatusCodes.Status400BadRequest
+                        statusCode: StatusCodes.Status401Unauthorized
                     );
                 }
 
