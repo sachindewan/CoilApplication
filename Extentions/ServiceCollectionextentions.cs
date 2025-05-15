@@ -1,8 +1,6 @@
 ﻿using Carter;
 using Coil.Api.Database;
 using Coil.Api.Entities;
-using Coil.Api.Features.Cost;
-using Coil.Api.Features.UserAssignedToPlant;
 using Coil.Api.Shared;
 using Coil.Api.Shared.Exception.Handler;
 using Coil.Api.Shared.MediatR;
@@ -101,7 +99,6 @@ namespace Coil.Api.Extentions
             services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<CoilIdentityDbContext>().AddApiEndpoints();
             return services;
         }
-
         private static void AddSwaggerGenDocSecurityRequirements(IServiceCollection services)
         {
             services.AddSwaggerGen(c =>
