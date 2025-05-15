@@ -77,7 +77,7 @@ namespace Coil.Api.Features.Identity
                     });
                 }
 
-                var assignedPlant = await dbContext.Plants
+                var assignedPlant = await dbContext.Plants.Include(x=>x.Parties)
                     .AsNoTracking()
                     .Where(p => p.PlantId == user.PlantId).ToListAsync();
 
