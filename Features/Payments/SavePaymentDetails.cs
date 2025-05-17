@@ -6,7 +6,9 @@ using Coil.Api.Shared.MediatR;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Coil.Api.Features.OutStandingPartyAmount.GetOutStandingAmount;
 using static Coil.Api.Features.Payments.SavePaymentDetails;
+using static Coil.Api.Features.RawMaterialOperations.GetRawMaterialPurchasesDetails;
 
 namespace Coil.Api.Features.Payments
 {
@@ -41,10 +43,18 @@ namespace Coil.Api.Features.Payments
             }
         }
 
-        internal sealed class SavePaymentCommandHandler(CoilApplicationDbContext _dbContext) : IRequestHandler<SavePaymentCommand, Result<Payment>>
+        internal sealed class SavePaymentCommandHandler(CoilApplicationDbContext _dbContext, IRequestHandler<GetRawMaterialPurchasesQuery, Result<List<RawMaterialPurchase>>> handler, IRequestHandler<GetOutStandingPurchaseAmountQuery, Result<List<GetOutStandingPurchaseAmountResponse>>> outStandingAmountHandler) : IRequestHandler<SavePaymentCommand, Result<Payment>>
         {
             public async Task<Result<Payment>> Handle(SavePaymentCommand request, CancellationToken cancellationToken)
             {
+                var result = await handler.Handle(new GetRawMaterialPurchasesQuery(request.PlantId), cancellationToken);
+                var purchaseHasMade = result.Value.Where(x => x.PartyId == request.PartyId).ToList();
+                if (!purchaseHasMade.Any())
+                {
+                    return Result.Failure<Payment>(new Error(
+                       "SavePaymentCommand.PlantNotFound",
+                       $"Plant with ID {request.PlantId} for party {request.PartyId} purchase has not been made."));
+                }
                 // Validate Plant existence
                 var plantExists = await _dbContext.Plants.AnyAsync(p => p.PlantId == request.PlantId, cancellationToken);
                 if (!plantExists)
@@ -55,14 +65,24 @@ namespace Coil.Api.Features.Payments
                 }
 
                 // Validate Party existence
-                var partyExists = await _dbContext.Parties.AnyAsync(p => p.PartyId == request.PartyId, cancellationToken);
-                if (!partyExists)
+                var partyExists =  _dbContext.Parties.Where(p => p.PartyId == request.PartyId).ToList();
+                if (!partyExists.Any())
                 {
                     return Result.Failure<Payment>(new Error(
                         "SavePaymentCommand.PartyNotFound",
                         $"Party with ID {request.PartyId} does not exist."));
                 }
+                //validate partner should not pay more than due amount
 
+                var resultAmount = await outStandingAmountHandler.Handle(new GetOutStandingPurchaseAmountQuery(request.PlantId), cancellationToken);
+                var outStandingAmountOfCurrentParty = resultAmount.Value?.FirstOrDefault(x => x.PartyName == partyExists.FirstOrDefault()?.PartyName)?.Amount;
+
+                if(outStandingAmountOfCurrentParty < request.Amount)
+                {
+                    return Result.Failure<Payment>(new Error(
+                       "SavePaymentCommand.PartyNotFound",
+                       $"Partner should not pay more than due amount. due  amount is {outStandingAmountOfCurrentParty}"));
+                }
                 // Create a new Payment entity
                 var newPayment = new Payment
                 {
