@@ -18,7 +18,14 @@ namespace Coil.Api.Features.Sales
             public async Task<Result<List<Sale>>> Handle(GetSalesDetailsQuery request, CancellationToken cancellationToken)
             {
                 var query = _dbContext.Sales.AsQueryable();
-                query = query.Where(s => s.SaleDate >= request.StartDate && s.SaleDate <= request.EndDate);
+                if(request.StartDate == request.EndDate)
+                {
+                    query = query.Where(s => s.SaleDate.Date == request.StartDate.Date);
+                }
+                else
+                {
+                    query = query.Where(s => s.SaleDate.Date >= request.StartDate.Date && s.SaleDate.Date <= request.EndDate.Date);
+                }
 
                 if (request.PlantId.HasValue)
                 {
